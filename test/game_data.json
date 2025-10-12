@@ -1,0 +1,408 @@
+{
+    "activePlayer": {
+        "abilities": {
+            "E": {
+                "abilityLevel": 1,
+                "displayName": "Foudroiement",
+                "id": "VolibearE",
+                "rawDescription": "GeneratedTip_Spell_VolibearE_Description",
+                "rawDisplayName": "GeneratedTip_Spell_VolibearE_DisplayName"
+            },
+            "Passive": {
+                "displayName": "Temp\u00eate impitoyable",
+                "id": "VolibearP",
+                "rawDescription": "GeneratedTip_Passive_VolibearP_Description",
+                "rawDisplayName": "GeneratedTip_Passive_VolibearP_DisplayName"
+            },
+            "Q": {
+                "abilityLevel": 4,
+                "displayName": "Coup fulgurant",
+                "id": "VolibearQ",
+                "rawDescription": "GeneratedTip_Spell_VolibearQ_Description",
+                "rawDisplayName": "GeneratedTip_Spell_VolibearQ_DisplayName"
+            },
+            "R": {
+                "abilityLevel": 1,
+                "displayName": "Temp\u00eate incarn\u00e9e",
+                "id": "VolibearR",
+                "rawDescription": "GeneratedTip_Spell_VolibearR_Description",
+                "rawDisplayName": "GeneratedTip_Spell_VolibearR_DisplayName"
+            },
+            "W": {
+                "abilityLevel": 1,
+                "displayName": "Folie mutilatrice",
+                "id": "VolibearW",
+                "rawDescription": "GeneratedTip_Spell_VolibearW_Description",
+                "rawDisplayName": "GeneratedTip_Spell_VolibearW_DisplayName"
+            }
+        },
+        "championStats": {
+            "abilityHaste": 0.0,
+            "abilityPower": 0.0,
+            "armor": 56.194000244140625,
+            "armorPenetrationFlat": 0.0,
+            "armorPenetrationPercent": 1.0,
+            "attackDamage": 82.35750579833984,
+            "attackRange": 150.0,
+            "attackSpeed": 0.7943300008773804,
+            "bonusArmorPenetrationPercent": 1.0,
+            "bonusMagicPenetrationPercent": 1.0,
+            "critChance": 0.0,
+            "critDamage": 175.0,
+            "currentHealth": 1223.8800048828125,
+            "healShieldPower": 0.05000000074505806,
+            "healthRegenRate": 2.526750087738037,
+            "lifeSteal": 0.0,
+            "magicLethality": 0.0,
+            "magicPenetrationFlat": 0.0,
+            "magicPenetrationPercent": 1.0,
+            "magicResist": 41.9322509765625,
+            "maxHealth": 1223.8800048828125,
+            "moveSpeed": 510.5,
+            "omnivamp": 0.0,
+            "physicalLethality": 0.0,
+            "physicalVamp": 0.0,
+            "resourceMax": 689.1500244140625,
+            "resourceRegenRate": 1.7345000505447388,
+            "resourceType": "MANA",
+            "resourceValue": 689.1500244140625,
+            "spellVamp": 0.0,
+            "tenacity": 5.0
+        },
+        "currentGold": 2200.78271484375,
+        "fullRunes": {
+            "generalRunes": [
+                {
+                    "displayName": "Tempo mortel",
+                    "id": 8008,
+                    "rawDescription": "perk_tooltip_LethalTempo",
+                    "rawDisplayName": "perk_displayname_LethalTempo"
+                },
+                {
+                    "displayName": "Pr\u00e9sence d'esprit",
+                    "id": 8009,
+                    "rawDescription": "perk_tooltip_PresenceOfMind",
+                    "rawDisplayName": "perk_displayname_PresenceOfMind"
+                },
+                {
+                    "displayName": "L\u00e9gende\u00a0: alacrit\u00e9",
+                    "id": 9104,
+                    "rawDescription": "perk_tooltip_9104",
+                    "rawDisplayName": "perk_displayname_9104"
+                },
+                {
+                    "displayName": "Baroud d'honneur",
+                    "id": 8299,
+                    "rawDescription": "perk_tooltip_8234",
+                    "rawDisplayName": "perk_displayname_8234"
+                },
+                {
+                    "displayName": "Second souffle",
+                    "id": 8444,
+                    "rawDescription": "perk_tooltip_SecondWind",
+                    "rawDisplayName": "perk_displayname_SecondWind"
+                },
+                {
+                    "displayName": "Revitalisation",
+                    "id": 8453,
+                    "rawDescription": "perk_tooltip_Revitalize",
+                    "rawDisplayName": "perk_displayname_Revitalize"
+                }
+            ],
+            "keystone": {
+                "displayName": "Tempo mortel",
+                "id": 8008,
+                "rawDescription": "perk_tooltip_LethalTempo",
+                "rawDisplayName": "perk_displayname_LethalTempo"
+            },
+            "primaryRuneTree": {
+                "displayName": "Pr\u00e9cision",
+                "id": 8000,
+                "rawDescription": "perkstyle_tooltip_7201",
+                "rawDisplayName": "perkstyle_displayname_7201"
+            },
+            "secondaryRuneTree": {
+                "displayName": "Volont\u00e9",
+                "id": 8400,
+                "rawDescription": "perkstyle_tooltip_7204",
+                "rawDisplayName": "perkstyle_displayname_7204"
+            },
+            "statRunes": [
+                {
+                    "id": 5005,
+                    "rawDescription": "perk_tooltip_StatModAttackSpeed"
+                },
+                {
+                    "id": 5008,
+                    "rawDescription": "perk_tooltip_StatModAdaptive"
+                },
+                {
+                    "id": 5001,
+                    "rawDescription": "perk_tooltip_StatModHealthScaling"
+                }
+            ]
+        },
+        "level": 7,
+        "riotId": "19HAuLit#4132",
+        "riotIdGameName": "19HAuLit",
+        "riotIdTagLine": "4132",
+        "summonerName": "19HAuLit#4132",
+        "teamRelativeColors": true
+    },
+    "allPlayers": [
+        {
+            "championName": "Volibear",
+            "isBot": false,
+            "isDead": false,
+            "items": [
+                {
+                    "canUse": true,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Balise camoufl\u00e9e",
+                    "itemID": 3340,
+                    "price": 0,
+                    "rawDescription": "GeneratedTip_Item_3340_Description",
+                    "rawDisplayName": "Item_3340_Name",
+                    "slot": 6
+                }
+            ],
+            "level": 7,
+            "position": "NONE",
+            "rawChampionName": "game_character_displayname_Volibear",
+            "rawSkinName": "game_character_skin_displayname_Volibear_0",
+            "respawnTimer": 0.0,
+            "riotId": "19HAuLit#4132",
+            "riotIdGameName": "19HAuLit",
+            "riotIdTagLine": "4132",
+            "runes": {
+                "keystone": {
+                    "displayName": "Tempo mortel",
+                    "id": 8008,
+                    "rawDescription": "perk_tooltip_LethalTempo",
+                    "rawDisplayName": "perk_displayname_LethalTempo"
+                },
+                "primaryRuneTree": {
+                    "displayName": "Pr\u00e9cision",
+                    "id": 8000,
+                    "rawDescription": "perkstyle_tooltip_7201",
+                    "rawDisplayName": "perkstyle_displayname_7201"
+                },
+                "secondaryRuneTree": {
+                    "displayName": "Volont\u00e9",
+                    "id": 8400,
+                    "rawDescription": "perkstyle_tooltip_7204",
+                    "rawDisplayName": "perkstyle_displayname_7204"
+                }
+            },
+            "scores": {
+                "assists": 0,
+                "creepScore": 0,
+                "deaths": 2,
+                "kills": 1,
+                "wardScore": 0.0
+            },
+            "skinID": 0,
+            "skinName": "",
+            "summonerName": "19HAuLit#4132",
+            "summonerSpells": {
+                "summonerSpellOne": {
+                    "displayName": "Barri\u00e8re",
+                    "rawDescription": "GeneratedTip_SummonerSpell_SummonerBarrier_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerBarrier_DisplayName"
+                },
+                "summonerSpellTwo": {
+                    "displayName": "T\u00e9l\u00e9portation d\u00e9brid\u00e9e",
+                    "rawDescription": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_DisplayName"
+                }
+            },
+            "team": "ORDER"
+        },
+        {
+            "championName": "Akali",
+            "isBot": true,
+            "isDead": false,
+            "items": [
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Anneau de Doran",
+                    "itemID": 1056,
+                    "price": 400,
+                    "rawDescription": "GeneratedTip_Item_1056_Description",
+                    "rawDisplayName": "Item_1056_Name",
+                    "slot": 0
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Chaussures de sorcier",
+                    "itemID": 3020,
+                    "price": 800,
+                    "rawDescription": "GeneratedTip_Item_3020_Description",
+                    "rawDisplayName": "Item_3020_Name",
+                    "slot": 1
+                },
+                {
+                    "canUse": true,
+                    "consumable": true,
+                    "count": 2,
+                    "displayName": "Balise de contr\u00f4le",
+                    "itemID": 2055,
+                    "price": 75,
+                    "rawDescription": "GeneratedTip_Item_2055_Description",
+                    "rawDisplayName": "Item_2055_Name",
+                    "slot": 2
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Brillance",
+                    "itemID": 3057,
+                    "price": 650,
+                    "rawDescription": "GeneratedTip_Item_3057_Description",
+                    "rawDisplayName": "Item_3057_Name",
+                    "slot": 3
+                },
+                {
+                    "canUse": true,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Balise camoufl\u00e9e",
+                    "itemID": 3340,
+                    "price": 0,
+                    "rawDescription": "GeneratedTip_Item_3340_Description",
+                    "rawDisplayName": "Item_3340_Name",
+                    "slot": 6
+                }
+            ],
+            "level": 9,
+            "position": "MIDDLE",
+            "rawChampionName": "game_character_displayname_Akali",
+            "rawSkinName": "game_character_skin_displayname_Akali_0",
+            "respawnTimer": 0.0,
+            "riotId": "Akali#BOT",
+            "riotIdGameName": "Akali",
+            "riotIdTagLine": "BOT",
+            "runes": {
+                "keystone": {
+                    "displayName": "\u00c9lectrocution",
+                    "id": 8112,
+                    "rawDescription": "perk_tooltip_Electrocute",
+                    "rawDisplayName": "perk_displayname_Electrocute"
+                },
+                "primaryRuneTree": {
+                    "displayName": "Domination",
+                    "id": 8100,
+                    "rawDescription": "perkstyle_tooltip_7200",
+                    "rawDisplayName": "perkstyle_displayname_7200"
+                },
+                "secondaryRuneTree": {
+                    "displayName": "Pr\u00e9cision",
+                    "id": 8000,
+                    "rawDescription": "perkstyle_tooltip_7201",
+                    "rawDisplayName": "perkstyle_displayname_7201"
+                }
+            },
+            "scores": {
+                "assists": 0,
+                "creepScore": 60,
+                "deaths": 1,
+                "kills": 2,
+                "wardScore": 0.0
+            },
+            "skinID": 0,
+            "skinName": "",
+            "summonerName": "Bot Akali",
+            "summonerSpells": {
+                "summonerSpellOne": {
+                    "displayName": "Saut \u00e9clair",
+                    "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+                },
+                "summonerSpellTwo": {
+                    "displayName": "T\u00e9l\u00e9portation d\u00e9brid\u00e9e",
+                    "rawDescription": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_DisplayName"
+                }
+            },
+            "team": "CHAOS"
+        }
+    ],
+    "events": {
+        "Events": [
+            {
+                "EventID": 0,
+                "EventName": "GameStart",
+                "EventTime": 0.011013000272214413
+            },
+            {
+                "EventID": 1,
+                "EventName": "MinionsSpawning",
+                "EventTime": 65.0232925415039
+            },
+            {
+                "Assisters": [],
+                "EventID": 2,
+                "EventName": "ChampionKill",
+                "EventTime": 466.874755859375,
+                "KillerName": "Bot Akali",
+                "VictimName": "19HAuLit"
+            },
+            {
+                "EventID": 3,
+                "EventName": "FirstBlood",
+                "EventTime": 466.874755859375,
+                "Recipient": "Bot Akali"
+            },
+            {
+                "Acer": "Bot Akali",
+                "AcingTeam": "CHAOS",
+                "EventID": 4,
+                "EventName": "Ace",
+                "EventTime": 466.874755859375
+            },
+            {
+                "Assisters": [],
+                "EventID": 5,
+                "EventName": "ChampionKill",
+                "EventTime": 524.3114624023438,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Akali"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 6,
+                "EventName": "Ace",
+                "EventTime": 524.3114624023438
+            },
+            {
+                "Assisters": [],
+                "EventID": 7,
+                "EventName": "ChampionKill",
+                "EventTime": 591.9661865234375,
+                "KillerName": "Bot Akali",
+                "VictimName": "19HAuLit"
+            },
+            {
+                "Acer": "Bot Akali",
+                "AcingTeam": "CHAOS",
+                "EventID": 8,
+                "EventName": "Ace",
+                "EventTime": 591.9661865234375
+            }
+        ]
+    },
+    "gameData": {
+        "gameMode": "CLASSIC",
+        "gameTime": 691.0545043945312,
+        "mapName": "Map11",
+        "mapNumber": 11,
+        "mapTerrain": "Default"
+    }
+}
