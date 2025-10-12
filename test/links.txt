@@ -1,0 +1,2 @@
+[GET /lol-end-of-game/v1/eog-stats-block](https://swagger.dysolix.dev/lcu/#/Plugin%20lol-end-of-game/GetLolEndOfGameV1EogStatsBlock)
+https://127.0.0.1:2999/liveclientdata/allgamedata
