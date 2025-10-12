@@ -2,135 +2,135 @@
     "activePlayer": {
         "abilities": {
             "E": {
-                "abilityLevel": 1,
-                "displayName": "Foudroiement",
-                "id": "VolibearE",
-                "rawDescription": "GeneratedTip_Spell_VolibearE_Description",
-                "rawDisplayName": "GeneratedTip_Spell_VolibearE_DisplayName"
+                "abilityLevel": 5,
+                "displayName": "Distorsion temporelle",
+                "id": "TimeWarp",
+                "rawDescription": "GeneratedTip_Spell_TimeWarp_Description",
+                "rawDisplayName": "GeneratedTip_Spell_TimeWarp_DisplayName"
             },
             "Passive": {
-                "displayName": "Temp\u00eate impitoyable",
-                "id": "VolibearP",
-                "rawDescription": "GeneratedTip_Passive_VolibearP_Description",
-                "rawDisplayName": "GeneratedTip_Passive_VolibearP_DisplayName"
+                "displayName": "Temps dans une bouteille",
+                "id": "HeightenedLearning",
+                "rawDescription": "GeneratedTip_Passive_HeightenedLearning_Description",
+                "rawDisplayName": "GeneratedTip_Passive_HeightenedLearning_DisplayName"
             },
             "Q": {
-                "abilityLevel": 4,
-                "displayName": "Coup fulgurant",
-                "id": "VolibearQ",
-                "rawDescription": "GeneratedTip_Spell_VolibearQ_Description",
-                "rawDisplayName": "GeneratedTip_Spell_VolibearQ_DisplayName"
+                "abilityLevel": 5,
+                "displayName": "Bombe \u00e0 retardement",
+                "id": "ZileanQ",
+                "rawDescription": "GeneratedTip_Spell_ZileanQ_Description",
+                "rawDisplayName": "GeneratedTip_Spell_ZileanQ_DisplayName"
             },
             "R": {
-                "abilityLevel": 1,
-                "displayName": "Temp\u00eate incarn\u00e9e",
-                "id": "VolibearR",
-                "rawDescription": "GeneratedTip_Spell_VolibearR_Description",
-                "rawDisplayName": "GeneratedTip_Spell_VolibearR_DisplayName"
+                "abilityLevel": 3,
+                "displayName": "Retour temporel",
+                "id": "ChronoShift",
+                "rawDescription": "GeneratedTip_Spell_ChronoShift_Description",
+                "rawDisplayName": "GeneratedTip_Spell_ChronoShift_DisplayName"
             },
             "W": {
-                "abilityLevel": 1,
-                "displayName": "Folie mutilatrice",
-                "id": "VolibearW",
-                "rawDescription": "GeneratedTip_Spell_VolibearW_Description",
-                "rawDisplayName": "GeneratedTip_Spell_VolibearW_DisplayName"
+                "abilityLevel": 5,
+                "displayName": "Retour rapide",
+                "id": "ZileanW",
+                "rawDescription": "GeneratedTip_Spell_ZileanW_Description",
+                "rawDisplayName": "GeneratedTip_Spell_ZileanW_DisplayName"
             }
         },
         "championStats": {
-            "abilityHaste": 0.0,
-            "abilityPower": 0.0,
-            "armor": 56.194000244140625,
+            "abilityHaste": 28.0,
+            "abilityPower": 455.79998779296875,
+            "armor": 109.00000762939453,
             "armorPenetrationFlat": 0.0,
             "armorPenetrationPercent": 1.0,
-            "attackDamage": 82.35750579833984,
-            "attackRange": 150.0,
-            "attackSpeed": 0.7943300008773804,
+            "attackDamage": 103.00000762939453,
+            "attackRange": 550.0,
+            "attackSpeed": 0.884312629699707,
             "bonusArmorPenetrationPercent": 1.0,
             "bonusMagicPenetrationPercent": 1.0,
             "critChance": 0.0,
             "critDamage": 175.0,
-            "currentHealth": 1223.8800048828125,
-            "healShieldPower": 0.05000000074505806,
-            "healthRegenRate": 2.526750087738037,
+            "currentHealth": 1696.103759765625,
+            "healShieldPower": 0.0,
+            "healthRegenRate": 2.8000001907348633,
             "lifeSteal": 0.0,
             "magicLethality": 0.0,
-            "magicPenetrationFlat": 0.0,
+            "magicPenetrationFlat": 44.0,
             "magicPenetrationPercent": 1.0,
-            "magicResist": 41.9322509765625,
-            "maxHealth": 1223.8800048828125,
-            "moveSpeed": 510.5,
+            "magicResist": 52.10000228881836,
+            "maxHealth": 2386.000244140625,
+            "moveSpeed": 402.79998779296875,
             "omnivamp": 0.0,
             "physicalLethality": 0.0,
             "physicalVamp": 0.0,
-            "resourceMax": 689.1500244140625,
-            "resourceRegenRate": 1.7345000505447388,
+            "resourceMax": 2152.0,
+            "resourceRegenRate": 4.990000247955322,
             "resourceType": "MANA",
-            "resourceValue": 689.1500244140625,
+            "resourceValue": 1294.8466796875,
             "spellVamp": 0.0,
             "tenacity": 5.0
         },
-        "currentGold": 2200.78271484375,
+        "currentGold": 998.9136352539062,
         "fullRunes": {
             "generalRunes": [
                 {
-                    "displayName": "Tempo mortel",
-                    "id": 8008,
-                    "rawDescription": "perk_tooltip_LethalTempo",
-                    "rawDisplayName": "perk_displayname_LethalTempo"
+                    "displayName": "Invocation d'Aery",
+                    "id": 8214,
+                    "rawDescription": "perk_tooltip_SummonAery",
+                    "rawDisplayName": "perk_displayname_SummonAery"
                 },
                 {
-                    "displayName": "Pr\u00e9sence d'esprit",
-                    "id": 8009,
-                    "rawDescription": "perk_tooltip_PresenceOfMind",
-                    "rawDisplayName": "perk_displayname_PresenceOfMind"
+                    "displayName": "Ruban de mana",
+                    "id": 8226,
+                    "rawDescription": "perk_tooltip_8226",
+                    "rawDisplayName": "perk_displayname_8226"
                 },
                 {
-                    "displayName": "L\u00e9gende\u00a0: alacrit\u00e9",
-                    "id": 9104,
-                    "rawDescription": "perk_tooltip_9104",
-                    "rawDisplayName": "perk_displayname_9104"
+                    "displayName": "Transcendance",
+                    "id": 8210,
+                    "rawDescription": "perk_tooltip_Transcendence",
+                    "rawDisplayName": "perk_displayname_Transcendence"
                 },
                 {
-                    "displayName": "Baroud d'honneur",
-                    "id": 8299,
-                    "rawDescription": "perk_tooltip_8234",
-                    "rawDisplayName": "perk_displayname_8234"
+                    "displayName": "Marche sur l'eau",
+                    "id": 8232,
+                    "rawDescription": "perk_tooltip_Waterwalking",
+                    "rawDisplayName": "perk_displayname_Waterwalking"
                 },
                 {
-                    "displayName": "Second souffle",
-                    "id": 8444,
-                    "rawDescription": "perk_tooltip_SecondWind",
-                    "rawDisplayName": "perk_displayname_SecondWind"
+                    "displayName": "Coup bas",
+                    "id": 8126,
+                    "rawDescription": "perk_tooltip_CheapShot",
+                    "rawDisplayName": "perk_displayname_CheapShot"
                 },
                 {
-                    "displayName": "Revitalisation",
-                    "id": 8453,
-                    "rawDescription": "perk_tooltip_Revitalize",
-                    "rawDisplayName": "perk_displayname_Revitalize"
+                    "displayName": "Chasseur acharn\u00e9",
+                    "id": 8105,
+                    "rawDescription": "perk_tooltip_8105",
+                    "rawDisplayName": "perk_displayname_8105"
                 }
             ],
             "keystone": {
-                "displayName": "Tempo mortel",
-                "id": 8008,
-                "rawDescription": "perk_tooltip_LethalTempo",
-                "rawDisplayName": "perk_displayname_LethalTempo"
+                "displayName": "Invocation d'Aery",
+                "id": 8214,
+                "rawDescription": "perk_tooltip_SummonAery",
+                "rawDisplayName": "perk_displayname_SummonAery"
             },
             "primaryRuneTree": {
-                "displayName": "Pr\u00e9cision",
-                "id": 8000,
-                "rawDescription": "perkstyle_tooltip_7201",
-                "rawDisplayName": "perkstyle_displayname_7201"
+                "displayName": "Sorcellerie",
+                "id": 8200,
+                "rawDescription": "perkstyle_tooltip_7202",
+                "rawDisplayName": "perkstyle_displayname_7202"
             },
             "secondaryRuneTree": {
-                "displayName": "Volont\u00e9",
-                "id": 8400,
-                "rawDescription": "perkstyle_tooltip_7204",
-                "rawDisplayName": "perkstyle_displayname_7204"
+                "displayName": "Domination",
+                "id": 8100,
+                "rawDescription": "perkstyle_tooltip_7200",
+                "rawDisplayName": "perkstyle_displayname_7200"
             },
             "statRunes": [
                 {
-                    "id": 5005,
-                    "rawDescription": "perk_tooltip_StatModAttackSpeed"
+                    "id": 5007,
+                    "rawDescription": "perk_tooltip_StatModCooldownReductionScaling"
                 },
                 {
                     "id": 5008,
@@ -142,7 +142,7 @@
                 }
             ]
         },
-        "level": 7,
+        "level": 18,
         "riotId": "19HAuLit#4132",
         "riotIdGameName": "19HAuLit",
         "riotIdTagLine": "4132",
@@ -151,88 +151,19 @@
     },
     "allPlayers": [
         {
-            "championName": "Volibear",
+            "championName": "Zilean",
             "isBot": false,
-            "isDead": false,
-            "items": [
-                {
-                    "canUse": true,
-                    "consumable": false,
-                    "count": 1,
-                    "displayName": "Balise camoufl\u00e9e",
-                    "itemID": 3340,
-                    "price": 0,
-                    "rawDescription": "GeneratedTip_Item_3340_Description",
-                    "rawDisplayName": "Item_3340_Name",
-                    "slot": 6
-                }
-            ],
-            "level": 7,
-            "position": "NONE",
-            "rawChampionName": "game_character_displayname_Volibear",
-            "rawSkinName": "game_character_skin_displayname_Volibear_0",
-            "respawnTimer": 0.0,
-            "riotId": "19HAuLit#4132",
-            "riotIdGameName": "19HAuLit",
-            "riotIdTagLine": "4132",
-            "runes": {
-                "keystone": {
-                    "displayName": "Tempo mortel",
-                    "id": 8008,
-                    "rawDescription": "perk_tooltip_LethalTempo",
-                    "rawDisplayName": "perk_displayname_LethalTempo"
-                },
-                "primaryRuneTree": {
-                    "displayName": "Pr\u00e9cision",
-                    "id": 8000,
-                    "rawDescription": "perkstyle_tooltip_7201",
-                    "rawDisplayName": "perkstyle_displayname_7201"
-                },
-                "secondaryRuneTree": {
-                    "displayName": "Volont\u00e9",
-                    "id": 8400,
-                    "rawDescription": "perkstyle_tooltip_7204",
-                    "rawDisplayName": "perkstyle_displayname_7204"
-                }
-            },
-            "scores": {
-                "assists": 0,
-                "creepScore": 0,
-                "deaths": 2,
-                "kills": 1,
-                "wardScore": 0.0
-            },
-            "skinID": 0,
-            "skinName": "",
-            "summonerName": "19HAuLit#4132",
-            "summonerSpells": {
-                "summonerSpellOne": {
-                    "displayName": "Barri\u00e8re",
-                    "rawDescription": "GeneratedTip_SummonerSpell_SummonerBarrier_Description",
-                    "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerBarrier_DisplayName"
-                },
-                "summonerSpellTwo": {
-                    "displayName": "T\u00e9l\u00e9portation d\u00e9brid\u00e9e",
-                    "rawDescription": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_Description",
-                    "rawDisplayName": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_DisplayName"
-                }
-            },
-            "team": "ORDER"
-        },
-        {
-            "championName": "Akali",
-            "isBot": true,
             "isDead": false,
             "items": [
                 {
                     "canUse": false,
                     "consumable": false,
                     "count": 1,
-                    "displayName": "Anneau de Doran",
-                    "itemID": 1056,
-                    "price": 400,
-                    "rawDescription": "GeneratedTip_Item_1056_Description",
-                    "rawDisplayName": "Item_1056_Name",
+                    "displayName": "Compagnon de Luden",
+                    "itemID": 6655,
+                    "price": 450,
+                    "rawDescription": "GeneratedTip_Item_6655_Description",
+                    "rawDisplayName": "Item_6655_Name",
                     "slot": 0
                 },
                 {
@@ -247,26 +178,48 @@
                     "slot": 1
                 },
                 {
-                    "canUse": true,
-                    "consumable": true,
-                    "count": 2,
-                    "displayName": "Balise de contr\u00f4le",
-                    "itemID": 2055,
-                    "price": 75,
-                    "rawDescription": "GeneratedTip_Item_2055_Description",
-                    "rawDisplayName": "Item_2055_Name",
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Onde orageuse",
+                    "itemID": 4646,
+                    "price": 800,
+                    "rawDescription": "GeneratedTip_Item_4646_Description",
+                    "rawDisplayName": "Item_4646_Name",
                     "slot": 2
                 },
                 {
                     "canUse": false,
                     "consumable": false,
                     "count": 1,
-                    "displayName": "Brillance",
-                    "itemID": 3057,
-                    "price": 650,
-                    "rawDescription": "GeneratedTip_Item_3057_Description",
-                    "rawDisplayName": "Item_3057_Name",
+                    "displayName": "Flamme-ombre",
+                    "itemID": 4645,
+                    "price": 900,
+                    "rawDescription": "GeneratedTip_Item_4645_Description",
+                    "rawDisplayName": "Item_4645_Name",
                     "slot": 3
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Baguette trop grosse",
+                    "itemID": 1058,
+                    "price": 1200,
+                    "rawDescription": "GeneratedTip_Item_1058_Description",
+                    "rawDisplayName": "Item_1058_Name",
+                    "slot": 4
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Baguette trop grosse",
+                    "itemID": 1058,
+                    "price": 1200,
+                    "rawDescription": "GeneratedTip_Item_1058_Description",
+                    "rawDisplayName": "Item_1058_Name",
+                    "slot": 5
                 },
                 {
                     "canUse": true,
@@ -280,44 +233,44 @@
                     "slot": 6
                 }
             ],
-            "level": 9,
-            "position": "MIDDLE",
-            "rawChampionName": "game_character_displayname_Akali",
-            "rawSkinName": "game_character_skin_displayname_Akali_0",
+            "level": 18,
+            "position": "NONE",
+            "rawChampionName": "game_character_displayname_Zilean",
+            "rawSkinName": "game_character_skin_displayname_Zilean_0",
             "respawnTimer": 0.0,
-            "riotId": "Akali#BOT",
-            "riotIdGameName": "Akali",
-            "riotIdTagLine": "BOT",
+            "riotId": "19HAuLit#4132",
+            "riotIdGameName": "19HAuLit",
+            "riotIdTagLine": "4132",
             "runes": {
                 "keystone": {
-                    "displayName": "\u00c9lectrocution",
-                    "id": 8112,
-                    "rawDescription": "perk_tooltip_Electrocute",
-                    "rawDisplayName": "perk_displayname_Electrocute"
+                    "displayName": "Invocation d'Aery",
+                    "id": 8214,
+                    "rawDescription": "perk_tooltip_SummonAery",
+                    "rawDisplayName": "perk_displayname_SummonAery"
                 },
                 "primaryRuneTree": {
+                    "displayName": "Sorcellerie",
+                    "id": 8200,
+                    "rawDescription": "perkstyle_tooltip_7202",
+                    "rawDisplayName": "perkstyle_displayname_7202"
+                },
+                "secondaryRuneTree": {
                     "displayName": "Domination",
                     "id": 8100,
                     "rawDescription": "perkstyle_tooltip_7200",
                     "rawDisplayName": "perkstyle_displayname_7200"
-                },
-                "secondaryRuneTree": {
-                    "displayName": "Pr\u00e9cision",
-                    "id": 8000,
-                    "rawDescription": "perkstyle_tooltip_7201",
-                    "rawDisplayName": "perkstyle_displayname_7201"
                 }
             },
             "scores": {
                 "assists": 0,
-                "creepScore": 60,
-                "deaths": 1,
-                "kills": 2,
-                "wardScore": 0.0
+                "creepScore": 180,
+                "deaths": 5,
+                "kills": 14,
+                "wardScore": 17.58609390258789
             },
             "skinID": 0,
             "skinName": "",
-            "summonerName": "Bot Akali",
+            "summonerName": "19HAuLit#4132",
             "summonerSpells": {
                 "summonerSpellOne": {
                     "displayName": "Saut \u00e9clair",
@@ -325,9 +278,144 @@
                     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
                 },
                 "summonerSpellTwo": {
-                    "displayName": "T\u00e9l\u00e9portation d\u00e9brid\u00e9e",
-                    "rawDescription": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_Description",
-                    "rawDisplayName": "GeneratedTip_SummonerSpell_S12_SummonerTeleportUpgrade_DisplayName"
+                    "displayName": "Embrasement",
+                    "rawDescription": "GeneratedTip_SummonerSpell_SummonerDot_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerDot_DisplayName"
+                }
+            },
+            "team": "ORDER"
+        },
+        {
+            "championName": "Jhin",
+            "isBot": true,
+            "isDead": true,
+            "items": [
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Percepteur",
+                    "itemID": 6676,
+                    "price": 525,
+                    "rawDescription": "GeneratedTip_Item_6676_Description",
+                    "rawDisplayName": "Item_6676_Name",
+                    "slot": 0
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Bottes de c\u00e9l\u00e9rit\u00e9",
+                    "itemID": 3009,
+                    "price": 700,
+                    "rawDescription": "GeneratedTip_Item_3009_Description",
+                    "rawDisplayName": "Item_3009_Name",
+                    "slot": 1
+                },
+                {
+                    "canUse": true,
+                    "consumable": true,
+                    "count": 1,
+                    "displayName": "Balise de contr\u00f4le",
+                    "itemID": 2055,
+                    "price": 75,
+                    "rawDescription": "GeneratedTip_Item_2055_Description",
+                    "rawDisplayName": "Item_2055_Name",
+                    "slot": 2
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Lame d'infini",
+                    "itemID": 3031,
+                    "price": 675,
+                    "rawDescription": "GeneratedTip_Item_3031_Description",
+                    "rawDisplayName": "Item_3031_Name",
+                    "slot": 3
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Dague",
+                    "itemID": 1042,
+                    "price": 250,
+                    "rawDescription": "GeneratedTip_Item_1042_Description",
+                    "rawDisplayName": "Item_1042_Name",
+                    "slot": 4
+                },
+                {
+                    "canUse": false,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Dague",
+                    "itemID": 1042,
+                    "price": 250,
+                    "rawDescription": "GeneratedTip_Item_1042_Description",
+                    "rawDisplayName": "Item_1042_Name",
+                    "slot": 5
+                },
+                {
+                    "canUse": true,
+                    "consumable": false,
+                    "count": 1,
+                    "displayName": "Alt\u00e9ration divinatoire",
+                    "itemID": 3363,
+                    "price": 0,
+                    "rawDescription": "GeneratedTip_Item_3363_Description",
+                    "rawDisplayName": "Item_3363_Name",
+                    "slot": 6
+                }
+            ],
+            "level": 16,
+            "position": "BOTTOM",
+            "rawChampionName": "game_character_displayname_Jhin",
+            "rawSkinName": "game_character_skin_displayname_Jhin_0",
+            "respawnTimer": 7.159889221191406,
+            "riotId": "Jhin#BOT",
+            "riotIdGameName": "Jhin",
+            "riotIdTagLine": "BOT",
+            "runes": {
+                "keystone": {
+                    "displayName": "Com\u00e8te arcanique",
+                    "id": 8229,
+                    "rawDescription": "perk_tooltip_ArcaneComet",
+                    "rawDisplayName": "perk_displayname_ArcaneComet"
+                },
+                "primaryRuneTree": {
+                    "displayName": "Sorcellerie",
+                    "id": 8200,
+                    "rawDescription": "perkstyle_tooltip_7202",
+                    "rawDisplayName": "perkstyle_displayname_7202"
+                },
+                "secondaryRuneTree": {
+                    "displayName": "Domination",
+                    "id": 8100,
+                    "rawDescription": "perkstyle_tooltip_7200",
+                    "rawDisplayName": "perkstyle_displayname_7200"
+                }
+            },
+            "scores": {
+                "assists": 0,
+                "creepScore": 140,
+                "deaths": 14,
+                "kills": 3,
+                "wardScore": 1.5501017570495605
+            },
+            "skinID": 0,
+            "skinName": "",
+            "summonerName": "Bot Jhin",
+            "summonerSpells": {
+                "summonerSpellOne": {
+                    "displayName": "Barri\u00e8re",
+                    "rawDescription": "GeneratedTip_SummonerSpell_SummonerBarrier_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerBarrier_DisplayName"
+                },
+                "summonerSpellTwo": {
+                    "displayName": "Saut \u00e9clair",
+                    "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+                    "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
                 }
             },
             "team": "CHAOS"
@@ -338,71 +426,382 @@
             {
                 "EventID": 0,
                 "EventName": "GameStart",
-                "EventTime": 0.011013000272214413
+                "EventTime": 0.010416300036013126
             },
             {
                 "EventID": 1,
                 "EventName": "MinionsSpawning",
-                "EventTime": 65.0232925415039
+                "EventTime": 65.04051208496094
             },
             {
                 "Assisters": [],
                 "EventID": 2,
                 "EventName": "ChampionKill",
-                "EventTime": 466.874755859375,
-                "KillerName": "Bot Akali",
+                "EventTime": 151.22483825683594,
+                "KillerName": "Turret_TChaos_L0_P3_511845594",
                 "VictimName": "19HAuLit"
             },
             {
-                "EventID": 3,
-                "EventName": "FirstBlood",
-                "EventTime": 466.874755859375,
-                "Recipient": "Bot Akali"
-            },
-            {
-                "Acer": "Bot Akali",
-                "AcingTeam": "CHAOS",
-                "EventID": 4,
-                "EventName": "Ace",
-                "EventTime": 466.874755859375
-            },
-            {
                 "Assisters": [],
-                "EventID": 5,
+                "EventID": 3,
                 "EventName": "ChampionKill",
-                "EventTime": 524.3114624023438,
+                "EventTime": 328.87176513671875,
                 "KillerName": "19HAuLit",
-                "VictimName": "Bot Akali"
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "EventID": 4,
+                "EventName": "FirstBlood",
+                "EventTime": 328.87176513671875,
+                "Recipient": "19HAuLit"
             },
             {
                 "Acer": "19HAuLit",
                 "AcingTeam": "ORDER",
-                "EventID": 6,
+                "EventID": 5,
                 "EventName": "Ace",
-                "EventTime": 524.3114624023438
+                "EventTime": 328.87176513671875
             },
             {
                 "Assisters": [],
-                "EventID": 7,
+                "EventID": 6,
                 "EventName": "ChampionKill",
-                "EventTime": 591.9661865234375,
-                "KillerName": "Bot Akali",
+                "EventTime": 419.2340087890625,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 7,
+                "EventName": "Ace",
+                "EventTime": 419.2340087890625
+            },
+            {
+                "Assisters": [],
+                "EventID": 8,
+                "EventName": "ChampionKill",
+                "EventTime": 477.1313781738281,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 9,
+                "EventName": "Ace",
+                "EventTime": 477.1313781738281
+            },
+            {
+                "Assisters": [],
+                "EventID": 10,
+                "EventName": "ChampionKill",
+                "EventTime": 579.6987915039062,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 11,
+                "EventName": "Ace",
+                "EventTime": 579.6987915039062
+            },
+            {
+                "Assisters": [],
+                "EventID": 12,
+                "EventName": "ChampionKill",
+                "EventTime": 754.6176147460938,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 13,
+                "EventName": "Ace",
+                "EventTime": 754.6176147460938
+            },
+            {
+                "Assisters": [],
+                "EventID": 14,
+                "EventName": "ChampionKill",
+                "EventTime": 827.9254150390625,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 15,
+                "EventName": "Ace",
+                "EventTime": 827.9254150390625
+            },
+            {
+                "Assisters": [],
+                "EventID": 16,
+                "EventName": "TurretKilled",
+                "EventTime": 859.95703125,
+                "KillerName": "19HAuLit",
+                "TurretKilled": "Turret_TChaos_L0_P3_511845594"
+            },
+            {
+                "EventID": 17,
+                "EventName": "FirstBrick",
+                "EventTime": 859.95703125,
+                "KillerName": "Minion_T100L0S26N0161"
+            },
+            {
+                "Assisters": [],
+                "EventID": 18,
+                "EventName": "ChampionKill",
+                "EventTime": 885.2835083007812,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 19,
+                "EventName": "Ace",
+                "EventTime": 885.2835083007812
+            },
+            {
+                "Assisters": [],
+                "EventID": 20,
+                "EventName": "ChampionKill",
+                "EventTime": 1010.3330688476562,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 21,
+                "EventName": "Ace",
+                "EventTime": 1010.3330688476562
+            },
+            {
+                "Assisters": [],
+                "EventID": 22,
+                "EventName": "TurretKilled",
+                "EventTime": 1057.9473876953125,
+                "KillerName": "19HAuLit",
+                "TurretKilled": "Turret_TChaos_L0_P2_528623213"
+            },
+            {
+                "Assisters": [],
+                "EventID": 23,
+                "EventName": "ChampionKill",
+                "EventTime": 1079.1575927734375,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 24,
+                "EventName": "Ace",
+                "EventTime": 1079.1575927734375
+            },
+            {
+                "Assisters": [],
+                "EventID": 25,
+                "EventName": "ChampionKill",
+                "EventTime": 1120.2720947265625,
+                "KillerName": "Bot Jhin",
                 "VictimName": "19HAuLit"
             },
             {
-                "Acer": "Bot Akali",
+                "Acer": "Bot Jhin",
                 "AcingTeam": "CHAOS",
-                "EventID": 8,
+                "EventID": 26,
                 "EventName": "Ace",
-                "EventTime": 591.9661865234375
+                "EventTime": 1120.2720947265625
+            },
+            {
+                "Assisters": [],
+                "EventID": 27,
+                "EventName": "ChampionKill",
+                "EventTime": 1202.1348876953125,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 28,
+                "EventName": "Ace",
+                "EventTime": 1202.1348876953125
+            },
+            {
+                "Assisters": [],
+                "EventID": 29,
+                "EventName": "ChampionKill",
+                "EventTime": 1202.16845703125,
+                "KillerName": "Bot Jhin",
+                "VictimName": "19HAuLit"
+            },
+            {
+                "Acer": "Bot Jhin",
+                "AcingTeam": "CHAOS",
+                "EventID": 30,
+                "EventName": "Ace",
+                "EventTime": 1202.16845703125
+            },
+            {
+                "Assisters": [],
+                "EventID": 31,
+                "EventName": "ChampionKill",
+                "EventTime": 1291.736083984375,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 32,
+                "EventName": "Ace",
+                "EventTime": 1291.736083984375
+            },
+            {
+                "Assisters": [],
+                "EventID": 33,
+                "EventName": "TurretKilled",
+                "EventTime": 1337.12841796875,
+                "KillerName": "19HAuLit",
+                "TurretKilled": "Turret_TChaos_L0_P1_478290356"
+            },
+            {
+                "Assisters": [],
+                "EventID": 34,
+                "EventName": "ChampionKill",
+                "EventTime": 1348.81689453125,
+                "KillerName": "Bot Jhin",
+                "VictimName": "19HAuLit"
+            },
+            {
+                "Acer": "Bot Jhin",
+                "AcingTeam": "CHAOS",
+                "EventID": 35,
+                "EventName": "Ace",
+                "EventTime": 1348.81689453125
+            },
+            {
+                "Assisters": [],
+                "EventID": 36,
+                "EventName": "ChampionKill",
+                "EventTime": 1448.146240234375,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 37,
+                "EventName": "Ace",
+                "EventTime": 1448.146240234375
+            },
+            {
+                "Assisters": [],
+                "EventID": 38,
+                "EventName": "InhibKilled",
+                "EventTime": 1491.09326171875,
+                "InhibKilled": "Inhib_TChaos_L0_P1_2116220407",
+                "KillerName": "19HAuLit"
+            },
+            {
+                "Assisters": [],
+                "EventID": 39,
+                "EventName": "ChampionKill",
+                "EventTime": 1532.431640625,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 40,
+                "EventName": "Ace",
+                "EventTime": 1532.431640625
+            },
+            {
+                "Assisters": [],
+                "EventID": 41,
+                "EventName": "TurretKilled",
+                "EventTime": 1546.457275390625,
+                "KillerName": "Minion_T100L1S49N0309",
+                "TurretKilled": "Turret_TChaos_L1_P3_2254202041"
+            },
+            {
+                "Assisters": [],
+                "EventID": 42,
+                "EventName": "TurretKilled",
+                "EventTime": 1563.2564697265625,
+                "KillerName": "19HAuLit",
+                "TurretKilled": "Turret_TChaos_L1_P5_342097928"
+            },
+            {
+                "Assisters": [],
+                "EventID": 43,
+                "EventName": "TurretKilled",
+                "EventTime": 1574.3779296875,
+                "KillerName": "19HAuLit",
+                "TurretKilled": "Turret_TChaos_L1_P4_392430785"
+            },
+            {
+                "Assisters": [],
+                "EventID": 44,
+                "EventName": "ChampionKill",
+                "EventTime": 1577.35009765625,
+                "KillerName": "Minion_T200L0S51N0326",
+                "VictimName": "19HAuLit"
+            },
+            {
+                "Assisters": [],
+                "EventID": 45,
+                "EventName": "TurretKilled",
+                "EventTime": 1607.3497314453125,
+                "KillerName": "Minion_T100L1S51N0321",
+                "TurretKilled": "Turret_TChaos_L1_P2_2237424422"
+            },
+            {
+                "Assisters": [],
+                "EventID": 46,
+                "EventName": "TurretKilled",
+                "EventTime": 1610.58984375,
+                "KillerName": "Minion_T100L2S51N0325",
+                "TurretKilled": "Turret_TChaos_L2_P3_2521511112"
+            },
+            {
+                "Assisters": [],
+                "EventID": 47,
+                "EventName": "ChampionKill",
+                "EventTime": 1667.601318359375,
+                "KillerName": "19HAuLit",
+                "VictimName": "Bot Jhin"
+            },
+            {
+                "Acer": "19HAuLit",
+                "AcingTeam": "ORDER",
+                "EventID": 48,
+                "EventName": "Ace",
+                "EventTime": 1667.601318359375
+            },
+            {
+                "EventID": 49,
+                "EventName": "GameEnd",
+                "EventTime": 1706.4385986328125,
+                "Result": "Win"
             }
         ]
     },
     "gameData": {
         "gameMode": "CLASSIC",
-        "gameTime": 691.0545043945312,
+        "gameTime": 1713.1065673828125,
         "mapName": "Map11",
         "mapNumber": 11,
-        "mapTerrain": "Default"
+        "mapTerrain": "Default",
+        "winningTeam": "ORDER"
     }
 }

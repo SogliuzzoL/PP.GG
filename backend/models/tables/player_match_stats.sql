@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     runes TEXT,
     summoner_spells TEXT,
     skin_name TEXT NULL,
-    win BOOLEAN,
     FOREIGN KEY(match_id) REFERENCES matches(match_id),
     FOREIGN KEY(player_id) REFERENCES players(player_id)
 );
