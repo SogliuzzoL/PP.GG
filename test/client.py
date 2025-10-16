@@ -86,7 +86,7 @@ def main():
                             role = ask_for_role(player["riotIdGameName"], player["riotIdTagLine"])
                             player["detectedTeamPosition"] = role
                 # Sauvegarde locale des stats
-                filename = f"eog_stats_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                filename = f"data/eog_stats_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                 with open(filename, "w") as f:
                     json.dump(stats, f, indent=4)
                 print(f"\nLes stats ont été sauvegardées dans {filename}.")

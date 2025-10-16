@@ -5,7 +5,16 @@ from models.match import insert_match
 from models.performance_weights import get_weights, insert_weights, update_weights
 from models.player import create_player, get_player, update_player
 from models.player_match_stats import insert_player_match_stats
-from utils.performance import RecursiveLeastSquares, compute_performance_score
+from models.player_skill import (
+    get_player_skill,
+    insert_player_skill,
+    update_player_skill,
+)
+from utils.performance import (
+    KalmanSkillFilter,
+    RecursiveLeastSquares,
+    compute_performance_score,
+)
 
 
 def initialize_db(db_path: str):
@@ -170,7 +179,31 @@ def add_match(db_path: str, data: dict):
             }
             update_weights(db_path, position, new_weights, rls.P)
 
-            # Mettre à jour le PerformanceScore des joueurs dans la base de données
-            # update_player_performance_score(db_path, top_player["player_id"], perf_score_top)
-            # update_player_performance_score(db_path, bot_player["player_id"], perf_score_bot)
+            skill_top = get_player_skill(db_path, top_player["player_id"])
+            mu_top, sigma_top = None, None
+            if skill_top is None:
+                mu_top, sigma_top = 50.0, 50.0 / 3
+                insert_player_skill(db_path, top_player["player_id"], mu_top, sigma_top)
+            else:
+                mu_top, sigma_top = skill_top
+            ksf_top = KalmanSkillFilter(mu0=mu_top, sigma0=sigma_top)
+            ksf_top.predict()
+            ksf_top.update(y_top)
+            new_mu_top, new_sigma_top = ksf_top.get_state()
+            update_player_skill(db_path, top_player["player_id"], new_mu_top, new_sigma_top)
+
+            skill_bot = get_player_skill(db_path, bot_player["player_id"])
+            mu_bot, sigma_bot = None, None
+            if skill_bot is None:
+                mu_bot, sigma_bot = 50.0, 50.0 / 3
+                insert_player_skill(db_path, bot_player["player_id"], mu_bot, sigma_bot)
+            else:
+                mu_bot, sigma_bot = skill_bot
+            ksf_bot = KalmanSkillFilter(mu0=mu_bot, sigma0=sigma_bot)
+            ksf_bot.predict()
+            ksf_bot.update(y_bot)
+            new_mu_bot, new_sigma_bot = ksf_bot.get_state()
+            update_player_skill(db_path, bot_player["player_id"], new_mu_bot, new_sigma_bot)
+
+            print(f"Lane {position} - Top Player Skill: mu={new_mu_top:.2f}, sigma={new_sigma_top:.2f} | Bot Player Skill: mu={new_mu_bot:.2f}, sigma={new_sigma_bot:.2f}")
 
