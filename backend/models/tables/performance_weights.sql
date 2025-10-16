@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS performance_weights (
     kda_weight REAL NOT NULL,
     gold_weight REAL NOT NULL,
     cs_weight REAL NOT NULL,
-    objectives_weight REAL NOT NULL,
+    damage_weight REAL NOT NULL,
     win_weight REAL NOT NULL,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

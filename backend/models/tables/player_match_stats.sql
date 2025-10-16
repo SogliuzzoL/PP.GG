@@ -10,11 +10,10 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     deaths INTEGER,
     assists INTEGER,
     creep_score INTEGER,
-    gold_earned REAL,
-    items TEXT,
-    runes TEXT,
-    summoner_spells TEXT,
-    skin_name TEXT NULL,
+    gold_earned INTEGER,
+    total_damage_dealt_to_champions INTEGER,
+    vision_score INTEGER,
+    winner BOOLEAN,
     FOREIGN KEY(match_id) REFERENCES matches(match_id),
     FOREIGN KEY(player_id) REFERENCES players(player_id)
 );
