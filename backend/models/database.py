@@ -27,6 +27,7 @@ def initialize_db(db_path: str):
 
 
 def add_match(db_path: str, data: dict):
+    # Extract match information
     game_duration = int(data["gameLength"] / 60)
     winner = (
         "bot"
@@ -36,16 +37,24 @@ def add_match(db_path: str, data: dict):
         and not data["teams"][0]["isWinningTeam"]
         else "top"
     )
+    # Insert match record
     match_id = insert_match(db_path, game_duration, winner)
 
+    # Process players and insert/update their records
     for team in data["teams"]:
         for player in team["players"]:
+            # Check if player exists, if not create them
             player_id = get_player(db_path, player["puuid"])
             riot_id = player["riotIdGameName"] + "#" + player["riotIdTagLine"]
             if player_id:
                 update_player(db_path, player_id, riot_id)
             else:
                 player_id = create_player(db_path, player["puuid"], riot_id)
+
+            champion = player["championName"]
+            team = "bot" if team["isBottomTeam"] else "top"
+            position = player["detectedTeamPosition"]
+            level = player["stats"]["LEVEL"]
 
 
 def create_player(db_path: str, puuid: str, riot_id: str) -> int:
