@@ -149,6 +149,7 @@ def add_match(db_path: str, data: dict):
             win_point_top = 100 if top_player["is_winner"] else 0
             win_point_bot = 100 if bot_player["is_winner"] else 0
             alpha = 1 / (1 + matrix_P.trace() / 10)
+            print(f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
             y_top = (50 + (diff / 2)) * alpha + (1 - alpha) * win_point_top
             y_bot = 50 - (diff / 2) * alpha + (1 - alpha) * win_point_bot
 
