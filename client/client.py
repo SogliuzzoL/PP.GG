@@ -50,6 +50,7 @@ class RoleSelectorApp:
         self.root.title("Sélection des rôles")
         self.root.geometry("500x400")
         self.role_vars = {}
+        self.canceled = False
 
         ttk.Label(root, text="Sélectionnez le rôle pour chaque joueur :", font=('Helvetica', 12, 'bold')).pack(pady=10)
 
@@ -74,6 +75,7 @@ class RoleSelectorApp:
         self.root.quit()
 
     def on_close(self):
+        self.canceled = True
         self.root.quit()
 
 def get_lcu_lockfile_info():
@@ -179,15 +181,14 @@ def main():
         app = RoleSelectorApp(role_root, players)
         role_root.mainloop()
 
+        if app.canceled:
+            return
+
         # Sauvegarde locale des stats
         filename = f"eog_stats_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(filename, "w") as f:
             json.dump(stats, f, indent=4)
         print(f"\nLes stats ont été sauvegardées dans {filename}.")
-
-        
-        if app.on_close:  # Si l'utilisateur a cliqué sur Annuler
-            return
 
         # Envoi au backend
         result = send_to_backend(stats, config)
