@@ -107,6 +107,7 @@ def add_match(db_path: str, data: dict):
             # Stocker le joueur dans sa lane
             lane_players[position][team_side] = {
                 "player_id": player_id,
+                "riot_id": riot_id,
                 "kills": kills,
                 "deaths": deaths,
                 "assists": assists,
@@ -118,6 +119,7 @@ def add_match(db_path: str, data: dict):
             }
 
     # Calculer les PerformanceScores par lane et mettre à jour les poids
+    skills = {}
     for position, players in lane_players.items():
         if players["top"] and players["bot"]:
             top_player = players["top"]
@@ -203,3 +205,7 @@ def add_match(db_path: str, data: dict):
 
             print(f"Lane {position} - Top Player Skill: mu={new_mu_top:.2f}, sigma={new_sigma_top:.2f} | Bot Player Skill: mu={new_mu_bot:.2f}, sigma={new_sigma_bot:.2f}")
 
+            skills[top_player["riot_id"]] = (new_mu_top, new_sigma_top)
+            skills[bot_player["riot_id"]] = (new_mu_bot, new_sigma_bot)
+
+        return skills   

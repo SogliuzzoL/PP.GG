@@ -7,5 +7,5 @@ config = dotenv_values(".env")
 
 def add_match(request: Request):
     data = request.json
-    db_add_match(config["db_path"], data)
-    return jsonify({"message": "Match created!"}), 201
+    skills = db_add_match(config["db_path"], data)
+    return jsonify({"message": "Match created!", "skills": skills}), 201
