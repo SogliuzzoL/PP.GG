@@ -1,4 +1,5 @@
 import sqlite3
+from collections import defaultdict
 
 import numpy as np
 from models.match import insert_match
@@ -38,12 +39,6 @@ def initialize_db(db_path: str):
     cursor.close()
     conn.commit()
     conn.close()
-
-
-from collections import defaultdict
-
-import numpy as np
-
 
 def add_match(db_path: str, data: dict):
     # Extraire les informations du match
