@@ -2,7 +2,7 @@ import numpy as np
 
 
 class RecursiveLeastSquares:
-    def __init__(self, n_features: int, lambda_: float = 0.95):
+    def __init__(self, n_features: int, lambda_: float = 0.99):
         self.n_features = n_features
         self.lambda_ = lambda_  # Facteur d'oubli
         self.weights = np.array([0.25 for _ in range(n_features)])  # Poids initiaux positifs

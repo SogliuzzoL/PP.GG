@@ -151,7 +151,7 @@ def add_match(db_path: str, data: dict):
             alpha = 1 / (1 + matrix_P.trace())
             print(f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
             y_top = (50 + (diff / 2)) * alpha + (1 - alpha) * win_point_top
-            y_bot = 50 - (diff / 2) * alpha + (1 - alpha) * win_point_bot
+            y_bot = (50 - (diff / 2)) * alpha + (1 - alpha) * win_point_bot
 
             # Mettre à jour les poids pour chaque joueur de la lane
             rls = RecursiveLeastSquares(n_features=5)
