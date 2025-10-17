@@ -143,8 +143,8 @@ def add_match(db_path: str, data: dict):
 
             # Calculer la différence de PerformanceScore centrée en 50
             diff = perf_score_top - perf_score_bot
-            win_point_top = 100 if top_player["is_winner"] else 0
-            win_point_bot = 100 if bot_player["is_winner"] else 0
+            win_point_top = 75 if top_player["is_winner"] else 25
+            win_point_bot = 75 if bot_player["is_winner"] else 25
             alpha = 1 / (1 + matrix_P.trace())
             print(f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
             y_top = (50 + (diff / 2)) * alpha + (1 - alpha) * win_point_top
