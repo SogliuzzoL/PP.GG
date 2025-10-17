@@ -22,4 +22,4 @@ def wrapper_add_match():
     return add_match(request)
 
 
-app.run(port=config["backend_port"],debug=True)
+app.run(host="0.0.0.0", port=config["backend_port"], debug=True)
