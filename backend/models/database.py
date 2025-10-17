@@ -208,4 +208,4 @@ def add_match(db_path: str, data: dict):
             skills[top_player["riot_id"]] = (new_mu_top, new_sigma_top)
             skills[bot_player["riot_id"]] = (new_mu_bot, new_sigma_bot)
 
-        return skills   
+    return skills   
