@@ -148,13 +148,13 @@ def add_match(db_path: str, data: dict):
             diff = perf_score_top - perf_score_bot
             win_point_top = 100 if top_player["is_winner"] else 0
             win_point_bot = 100 if bot_player["is_winner"] else 0
-            alpha = 1 / (1 + matrix_P.trace() / 10)
+            alpha = 1 / (1 + matrix_P.trace())
             print(f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
             y_top = (50 + (diff / 2)) * alpha + (1 - alpha) * win_point_top
             y_bot = 50 - (diff / 2) * alpha + (1 - alpha) * win_point_bot
 
             # Mettre à jour les poids pour chaque joueur de la lane
-            rls = RecursiveLeastSquares(n_features=6)
+            rls = RecursiveLeastSquares(n_features=5)
             rls.P = matrix_P
             rls.weights = np.array([
                 weights["kda"],
