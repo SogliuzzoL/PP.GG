@@ -127,11 +127,11 @@ def add_match(db_path: str, data: dict):
             weights, matrix_P = get_weights(db_path, position)
             if weights is None:
                 weights = {
-                    "kda": 1.0,
-                    "cs": 1.0,
-                    "gold": 1.0,
-                    "damage_dealt": 1.0,
-                    "vision_score": 1.0
+                    "kda": 0.1,
+                    "cs": 0.1,
+                    "gold": 0.1,
+                    "damage_dealt": 0.1,
+                    "vision_score": 0.1
                 }
                 matrix_P = np.eye(5)
                 insert_weights(db_path, position, weights, matrix_P)
