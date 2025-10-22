@@ -1,7 +1,7 @@
 import os
 
 from flask import Request, jsonify
-from models.database import get_weights as db_get_weights
+from models.database import get_all_weights as db_get_weights
 
 
 def get_weights(request: Request):

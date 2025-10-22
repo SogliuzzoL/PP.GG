@@ -147,8 +147,8 @@ def add_match(db_path: str, data: dict):
 
             # Calculer la différence de PerformanceScore centrée en 50
             diff = perf_score_top - perf_score_bot
-            win_point_top = 75 if top_player["is_winner"] else 25
-            win_point_bot = 75 if bot_player["is_winner"] else 25
+            win_point_top = 60 if top_player["is_winner"] else 40
+            win_point_bot = 60 if bot_player["is_winner"] else 40
             alpha = 1 / (1 + matrix_P.trace())
             print(
                 f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
@@ -249,7 +249,7 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10):
     return top_players_list
 
 
-def get_weights(db_path: str):
+def get_all_weights(db_path: str):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
