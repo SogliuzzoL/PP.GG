@@ -45,7 +45,7 @@ def add_match(request: Request):
                 "inline": True,
             },
         ],
-        "footer": {"text": "Linker Match System"},
+        "footer": {"text": "PP.GG"},
     }
 
     # Envoi sur Discord
