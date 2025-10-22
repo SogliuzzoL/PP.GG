@@ -28,6 +28,7 @@ def get_weights(db_path: str, position: str) -> dict | None:
 
     return weights, matrix_P
 
+
 def insert_weights(db_path: str, position: str, weights: dict, maxtrix_P: np.ndarray):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -51,6 +52,7 @@ def insert_weights(db_path: str, position: str, weights: dict, maxtrix_P: np.nda
     cursor.close()
     conn.commit()
     conn.close()
+
 
 def update_weights(db_path: str, position: str, weights: dict, matrix_P: np.ndarray):
     conn = sqlite3.connect(db_path)

@@ -40,6 +40,7 @@ def initialize_db(db_path: str):
     conn.commit()
     conn.close()
 
+
 def add_match(db_path: str, data: dict):
     # Extraire les informations du match
     game_duration = float(data["gameLength"]) / 60.0  # Durée en minutes
@@ -79,7 +80,8 @@ def add_match(db_path: str, data: dict):
             kills = int(stats["CHAMPIONS_KILLED"])
             deaths = int(stats["NUM_DEATHS"])
             assists = int(stats["ASSISTS"])
-            cs = int(stats["MINIONS_KILLED"]) + int(stats["NEUTRAL_MINIONS_KILLED"])
+            cs = int(stats["MINIONS_KILLED"]) + \
+                int(stats["NEUTRAL_MINIONS_KILLED"])
             gold = int(stats["GOLD_EARNED"])
             damage_dealt = int(stats["TOTAL_DAMAGE_DEALT_TO_CHAMPIONS"])
             vision_score = int(stats["VISION_SCORE"])
@@ -138,15 +140,18 @@ def add_match(db_path: str, data: dict):
                 matrix_P = np.eye(5)
                 insert_weights(db_path, position, weights, matrix_P)
 
-            x_top, perf_score_top = compute_performance_score(weights, game_duration,top_player["kills"], top_player["deaths"], top_player["assists"],top_player["cs"], top_player["gold"], top_player["damage_dealt"], top_player["vision_score"])
-            x_bot, perf_score_bot = compute_performance_score(weights, game_duration,bot_player["kills"], bot_player["deaths"], bot_player["assists"],bot_player["cs"], bot_player["gold"], bot_player["damage_dealt"], bot_player["vision_score"])
+            x_top, perf_score_top = compute_performance_score(weights, game_duration, top_player["kills"], top_player["deaths"], top_player[
+                                                              "assists"], top_player["cs"], top_player["gold"], top_player["damage_dealt"], top_player["vision_score"])
+            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, bot_player["kills"], bot_player["deaths"], bot_player[
+                                                              "assists"], bot_player["cs"], bot_player["gold"], bot_player["damage_dealt"], bot_player["vision_score"])
 
             # Calculer la différence de PerformanceScore centrée en 50
             diff = perf_score_top - perf_score_bot
             win_point_top = 75 if top_player["is_winner"] else 25
             win_point_bot = 75 if bot_player["is_winner"] else 25
             alpha = 1 / (1 + matrix_P.trace())
-            print(f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
+            print(
+                f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
             y_top = (50 + (diff / 2)) * alpha + (1 - alpha) * win_point_top
             y_bot = (50 - (diff / 2)) * alpha + (1 - alpha) * win_point_bot
 
@@ -181,27 +186,31 @@ def add_match(db_path: str, data: dict):
             mu_top, sigma_top = None, None
             if skill_top is None:
                 mu_top, sigma_top = 50.0, 50.0 / 3
-                insert_player_skill(db_path, top_player["player_id"], mu_top, sigma_top)
+                insert_player_skill(
+                    db_path, top_player["player_id"], mu_top, sigma_top)
             else:
                 mu_top, sigma_top = skill_top
             ksf_top = KalmanSkillFilter(mu0=mu_top, sigma0=sigma_top)
             ksf_top.predict()
             ksf_top.update(y_top)
             new_mu_top, new_sigma_top = ksf_top.get_state()
-            update_player_skill(db_path, top_player["player_id"], new_mu_top, new_sigma_top)
+            update_player_skill(
+                db_path, top_player["player_id"], new_mu_top, new_sigma_top)
 
             skill_bot = get_player_skill(db_path, bot_player["player_id"])
             mu_bot, sigma_bot = None, None
             if skill_bot is None:
                 mu_bot, sigma_bot = 50.0, 50.0 / 3
-                insert_player_skill(db_path, bot_player["player_id"], mu_bot, sigma_bot)
+                insert_player_skill(
+                    db_path, bot_player["player_id"], mu_bot, sigma_bot)
             else:
                 mu_bot, sigma_bot = skill_bot
             ksf_bot = KalmanSkillFilter(mu0=mu_bot, sigma0=sigma_bot)
             ksf_bot.predict()
             ksf_bot.update(y_bot)
             new_mu_bot, new_sigma_bot = ksf_bot.get_state()
-            update_player_skill(db_path, bot_player["player_id"], new_mu_bot, new_sigma_bot)
+            update_player_skill(
+                db_path, bot_player["player_id"], new_mu_bot, new_sigma_bot)
 
             print(f"Lane {position} - Top Player Skill: mu={new_mu_top:.2f}, sigma={new_sigma_top:.2f} | Bot Player Skill: mu={new_mu_bot:.2f}, sigma={new_sigma_bot:.2f}")
 
@@ -209,3 +218,63 @@ def add_match(db_path: str, data: dict):
             skills[bot_player["riot_id"]] = (new_mu_bot, new_sigma_bot, "bot")
 
     return skills, "top" if winner == "top" else "bot"
+
+
+def top_players(db_path: str, offset: int = 0, limit: int = 10):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    query = """
+    SELECT riot_id, skill_mu, skill_sigma
+    FROM players
+    JOIN player_skill ON players.player_id = player_skill.player_id
+    ORDER BY skill_mu DESC
+    LIMIT ? OFFSET ?;
+    """
+    cursor.execute(query, (limit, offset))
+    results = cursor.fetchall()
+
+    top_players_list = []
+    for row in results:
+        riot_id, mu, sigma = row
+        top_players_list.append({
+            "riot_id": riot_id,
+            "mu": mu,
+            "sigma": sigma
+        })
+
+    cursor.close()
+    conn.close()
+
+    return top_players_list
+
+
+def get_weights(db_path: str):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    query = """
+    SELECT role, kda_weight, cs_weight, gold_weight, damage_weight, vision_weight, matrix_P
+    FROM performance_weights;
+    """
+    cursor.execute(query)
+    results = cursor.fetchall()
+
+    weights_dict = {}
+    for row in results:
+        position, weight_kda, weight_cs, weight_gold, weight_damage_dealt, weight_vision_score, matrix_P_blob = row
+        matrix_P = np.frombuffer(
+            matrix_P_blob, dtype=np.float64).reshape((5, 5))
+        weights_dict[position] = {
+            "kda": weight_kda,
+            "cs": weight_cs,
+            "gold": weight_gold,
+            "damage_dealt": weight_damage_dealt,
+            "vision_score": weight_vision_score,
+            "P_trace": float(np.trace(matrix_P))
+        }
+
+    cursor.close()
+    conn.close()
+
+    return weights_dict

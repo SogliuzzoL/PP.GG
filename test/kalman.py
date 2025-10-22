@@ -20,6 +20,7 @@ class KalmanSkillFilter:
     def get_state(self):
         return self.mu, np.sqrt(self.sigma2)
 
+
 # Exemple d'utilisation
 kalman = KalmanSkillFilter(mu0=50.0, sigma0=10.0, Q=0.1, R=1.0)
 

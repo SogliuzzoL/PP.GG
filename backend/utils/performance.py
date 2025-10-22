@@ -5,7 +5,8 @@ class RecursiveLeastSquares:
     def __init__(self, n_features: int, lambda_: float = 0.99):
         self.n_features = n_features
         self.lambda_ = lambda_  # Facteur d'oubli
-        self.weights = np.array([0.25 for _ in range(n_features)])  # Poids initiaux positifs
+        # Poids initiaux positifs
+        self.weights = np.array([0.25 for _ in range(n_features)])
         self.P = np.eye(n_features) * 1000  # Matrice de covariance initiale
 
     def update(self, x: np.ndarray, y: float) -> np.ndarray:
@@ -26,7 +27,7 @@ class RecursiveLeastSquares:
 
         return self.weights
 
-    
+
 class KalmanSkillFilter:
     def __init__(self, mu0=50.0, sigma0=50/3, Q=0.1, R=1.0):
         self.mu = mu0          # Skill initial
@@ -46,6 +47,7 @@ class KalmanSkillFilter:
     def get_state(self):
         return self.mu, np.sqrt(self.sigma2)
 
+
 def compute_performance_score(
     weights: dict,
     game_duration: float,
@@ -64,7 +66,8 @@ def compute_performance_score(
     damage_dealt_per_minute = damage_dealt / max(1, game_duration) / 100
     vision = vision_score / 10
 
-    x = np.array([kda, cs_per_minute, gold_per_minute, damage_dealt_per_minute, vision])
+    x = np.array([kda, cs_per_minute, gold_per_minute,
+                 damage_dealt_per_minute, vision])
 
     score = (
         kda * weights["kda"] +

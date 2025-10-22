@@ -5,7 +5,8 @@ class RecursiveLeastSquares:
     def __init__(self, n_features: int, lambda_: float = 0.99):
         self.n_features = n_features
         self.lambda_ = lambda_  # Facteur d'oubli
-        self.weights = np.array([0.25 for _ in range(n_features)])  # Poids initiaux
+        self.weights = np.array(
+            [0.25 for _ in range(n_features)])  # Poids initiaux
         self.P = np.eye(n_features) * 1000  # Matrice de covariance initiale
 
     def update(self, x: np.ndarray, y: float) -> np.ndarray:
@@ -22,6 +23,7 @@ class RecursiveLeastSquares:
         self.P -= K[:, np.newaxis] * x.T @ self.P
 
         return self.weights
+
 
 # Exemple d'utilisation
 n_features = 6  # KDA, CS/min, Gold/min, Damage/min, Vision Score, Win

@@ -17,6 +17,7 @@ def insert_player_skill(db_path: str, player_id: int, mu: float, sigma: float):
     conn.commit()
     conn.close()
 
+
 def update_player_skill(db_path: str, player_id: int, mu: float, sigma: float):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -33,6 +34,7 @@ def update_player_skill(db_path: str, player_id: int, mu: float, sigma: float):
     cursor.close()
     conn.commit()
     conn.close()
+
 
 def get_player_skill(db_path: str, player_id: int) -> tuple[float, float] | None:
     conn = sqlite3.connect(db_path)

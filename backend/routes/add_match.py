@@ -5,6 +5,7 @@ from models.database import add_match as db_add_match
 
 config = dotenv_values(".env")
 
+
 def add_match(request: Request):
     data = request.json
     skills, winner = db_add_match(config["db_path"], data)
