@@ -6,7 +6,7 @@ config = dotenv_values(".env")
 
 
 def top_players(request: Request):
-    db_path = config.get("DB_PATH")
+    db_path = config.get("db_path")
     try:
         offset = int(request.args.get("offset", 0))
         limit = int(request.args.get("limit", 10))

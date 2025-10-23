@@ -6,6 +6,6 @@ config = dotenv_values(".env")
 
 
 def get_weights(request: Request):
-    db_path = config.get("DB_PATH")
+    db_path = config.get("db_path")
     weights = db_get_weights(db_path)
     return jsonify({"weights": weights}), 200
