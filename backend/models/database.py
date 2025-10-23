@@ -217,7 +217,8 @@ def add_match(db_path: str, data: dict):
             if skill_top is None:
                 insert_player_skill(db_path, top_player_id, mu_top, sigma_top)
 
-            ksf_top = KalmanSkillFilter(mu0=mu_top, sigma0=sigma_top)
+            ksf_top = KalmanSkillFilter(
+                mu0=mu_top, sigma0=sigma_top, R=sigma_top**2)
             ksf_top.predict()
             ksf_top.update(y_top)
             new_mu_top, new_sigma_top = ksf_top.get_state()
@@ -230,7 +231,8 @@ def add_match(db_path: str, data: dict):
             if skill_bot is None:
                 insert_player_skill(db_path, bot_player_id, mu_bot, sigma_bot)
 
-            ksf_bot = KalmanSkillFilter(mu0=mu_bot, sigma0=sigma_bot)
+            ksf_bot = KalmanSkillFilter(
+                mu0=mu_bot, sigma0=sigma_bot, R=sigma_bot**2)
             ksf_bot.predict()
             ksf_bot.update(y_bot)
             new_mu_bot, new_sigma_bot = ksf_bot.get_state()
