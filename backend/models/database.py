@@ -122,12 +122,56 @@ def add_match(db_path: str, data: dict):
 
     # Calculer les PerformanceScores par lane et mettre à jour les poids
     skills = {}
+    player_performance_data = {}
+
     for position, players in lane_players.items():
         if players["top"] and players["bot"]:
             top_player = players["top"]
             bot_player = players["bot"]
 
-            # Récupérer les poids actuels pour cette lane
+            weights, _ = get_weights(db_path, position)
+            if weights is None:
+                weights = {
+                    "kda": 0.1,
+                    "cs": 0.1,
+                    "gold": 0.1,
+                    "damage_dealt": 0.1,
+                    "vision_score": 0.1
+                }
+
+            x_top, perf_score_top = compute_performance_score(weights, game_duration, top_player["kills"], top_player["deaths"], top_player[
+                                                              "assists"], top_player["cs"], top_player["gold"], top_player["damage_dealt"], top_player["vision_score"])
+            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, bot_player["kills"], bot_player["deaths"], bot_player[
+                                                              "assists"], bot_player["cs"], bot_player["gold"], bot_player["damage_dealt"], bot_player["vision_score"])
+
+            player_performance_data[top_player["player_id"]] = {
+                "perf_score": perf_score_top, "x": x_top, "position": position, "is_winner": top_player["is_winner"], "riot_id": top_player["riot_id"]}
+            player_performance_data[bot_player["player_id"]] = {
+                "perf_score": perf_score_bot, "x": x_bot, "position": position, "is_winner": bot_player["is_winner"], "riot_id": bot_player["riot_id"]}
+
+    all_perf_scores = [data["perf_score"]
+                       for data in player_performance_data.values()]
+    min_score = min(all_perf_scores)
+    max_score = max(all_perf_scores)
+
+    normalized_scores = {}
+    for player_id, data in player_performance_data.items():
+        perf_score = data["perf_score"]
+        if max_score == min_score:
+            normalized_score = 50.0
+        else:
+            normalized_score = 100 * \
+                (perf_score - min_score) / (max_score - min_score)
+        normalized_scores[player_id] = normalized_score
+
+    for position, players in lane_players.items():
+        if players["top"] and players["bot"]:
+            top_player = players["top"]
+            bot_player = players["bot"]
+
+            top_player_id = top_player["player_id"]
+            bot_player_id = bot_player["player_id"]
+
             weights, matrix_P = get_weights(db_path, position)
             if weights is None:
                 weights = {
@@ -140,77 +184,58 @@ def add_match(db_path: str, data: dict):
                 matrix_P = np.eye(5)
                 insert_weights(db_path, position, weights, matrix_P)
 
-            x_top, perf_score_top = compute_performance_score(weights, game_duration, top_player["kills"], top_player["deaths"], top_player[
-                                                              "assists"], top_player["cs"], top_player["gold"], top_player["damage_dealt"], top_player["vision_score"])
-            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, bot_player["kills"], bot_player["deaths"], bot_player[
-                                                              "assists"], bot_player["cs"], bot_player["gold"], bot_player["damage_dealt"], bot_player["vision_score"])
-
-            # Calculer la différence de PerformanceScore centrée en 50
-            diff = perf_score_top - perf_score_bot
             win_point_top = 60 if top_player["is_winner"] else 40
             win_point_bot = 60 if bot_player["is_winner"] else 40
+
             alpha = 1 / (1 + matrix_P.trace())
             print(
                 f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
-            y_top = (50 + (diff / 2)) * alpha + (1 - alpha) * win_point_top
-            y_bot = (50 - (diff / 2)) * alpha + (1 - alpha) * win_point_bot
 
-            # Mettre à jour les poids pour chaque joueur de la lane
+            y_top = normalized_scores[top_player_id] * \
+                alpha + (1 - alpha) * win_point_top
+            y_bot = normalized_scores[bot_player_id] * \
+                alpha + (1 - alpha) * win_point_bot
+
+            x_top = player_performance_data[top_player_id]["x"]
+            x_bot = player_performance_data[bot_player_id]["x"]
+
             rls = RecursiveLeastSquares(n_features=5)
             rls.P = matrix_P
-            rls.weights = np.array([
-                weights["kda"],
-                weights["cs"],
-                weights["gold"],
-                weights["damage_dealt"],
-                weights["vision_score"]
-            ])
+            rls.weights = np.array([weights["kda"], weights["cs"], weights["gold"],
+                                   weights["damage_dealt"], weights["vision_score"]])
 
-            # Mise à jour pour le joueur TOP
             rls.update(x_top, y_top)
-
-            # Mise à jour pour le joueur BOT
             rls.update(x_bot, y_bot)
 
-            # Extraire les nouveaux poids et la matrice P mise à jour
-            new_weights = {
-                "kda": float(rls.weights[0]),
-                "cs": float(rls.weights[1]),
-                "gold": float(rls.weights[2]),
-                "damage_dealt": float(rls.weights[3]),
-                "vision_score": float(rls.weights[4])
-            }
+            new_weights = {"kda": float(rls.weights[0]), "cs": float(rls.weights[1]), "gold": float(
+                rls.weights[2]), "damage_dealt": float(rls.weights[3]), "vision_score": float(rls.weights[4])}
             update_weights(db_path, position, new_weights, rls.P)
 
-            skill_top = get_player_skill(db_path, top_player["player_id"])
-            mu_top, sigma_top = None, None
+            skill_top = get_player_skill(db_path, top_player_id)
+            mu_top, sigma_top = (
+                50.0, 50.0 / 3) if skill_top is None else skill_top
             if skill_top is None:
-                mu_top, sigma_top = 50.0, 50.0 / 3
-                insert_player_skill(
-                    db_path, top_player["player_id"], mu_top, sigma_top)
-            else:
-                mu_top, sigma_top = skill_top
+                insert_player_skill(db_path, top_player_id, mu_top, sigma_top)
+
             ksf_top = KalmanSkillFilter(mu0=mu_top, sigma0=sigma_top)
             ksf_top.predict()
             ksf_top.update(y_top)
             new_mu_top, new_sigma_top = ksf_top.get_state()
-            update_player_skill(
-                db_path, top_player["player_id"], new_mu_top, new_sigma_top)
+            update_player_skill(db_path, top_player_id,
+                                new_mu_top, new_sigma_top)
 
-            skill_bot = get_player_skill(db_path, bot_player["player_id"])
-            mu_bot, sigma_bot = None, None
+            skill_bot = get_player_skill(db_path, bot_player_id)
+            mu_bot, sigma_bot = (
+                50.0, 50.0 / 3) if skill_bot is None else skill_bot
             if skill_bot is None:
-                mu_bot, sigma_bot = 50.0, 50.0 / 3
-                insert_player_skill(
-                    db_path, bot_player["player_id"], mu_bot, sigma_bot)
-            else:
-                mu_bot, sigma_bot = skill_bot
+                insert_player_skill(db_path, bot_player_id, mu_bot, sigma_bot)
+
             ksf_bot = KalmanSkillFilter(mu0=mu_bot, sigma0=sigma_bot)
             ksf_bot.predict()
             ksf_bot.update(y_bot)
             new_mu_bot, new_sigma_bot = ksf_bot.get_state()
-            update_player_skill(
-                db_path, bot_player["player_id"], new_mu_bot, new_sigma_bot)
+            update_player_skill(db_path, bot_player_id,
+                                new_mu_bot, new_sigma_bot)
 
             print(f"Lane {position} - Top Player Skill: mu={new_mu_top:.2f}, sigma={new_sigma_top:.2f} | Bot Player Skill: mu={new_mu_bot:.2f}, sigma={new_sigma_bot:.2f}")
 
