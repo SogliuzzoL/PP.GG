@@ -241,8 +241,24 @@ def add_match(db_path: str, data: dict):
 
             print(f"Lane {position} - Top Player Skill: mu={new_mu_top:.2f}, sigma={new_sigma_top:.2f} | Bot Player Skill: mu={new_mu_bot:.2f}, sigma={new_sigma_bot:.2f}")
 
-            skills[top_player["riot_id"]] = (new_mu_top, new_sigma_top, "top")
-            skills[bot_player["riot_id"]] = (new_mu_bot, new_sigma_bot, "bot")
+            skills[top_player["riot_id"]] = {
+                "mu": new_mu_top,
+                "sigma": new_sigma_top,
+                "team": "top",
+                "normalized_score": normalized_scores[top_player_id],
+                "alpha": alpha,
+                "y": y_top,
+                "position": position
+            }
+            skills[bot_player["riot_id"]] = {
+                "mu": new_mu_bot,
+                "sigma": new_sigma_bot,
+                "team": "bot",
+                "normalized_score": normalized_scores[bot_player_id],
+                "alpha": alpha,
+                "y": y_bot,
+                "position": position
+            }
 
     return skills, "top" if winner == "top" else "bot"
 
