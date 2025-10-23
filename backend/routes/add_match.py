@@ -1,5 +1,3 @@
-# Fichier : backend/routes/add_match.py
-
 import requests
 from dotenv import dotenv_values
 from flask import Request, jsonify

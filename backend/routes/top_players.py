@@ -1,11 +1,12 @@
-import os
-
+from dotenv import dotenv_values
 from flask import Request, jsonify
 from models.database import top_players as top_players_model
 
+config = dotenv_values(".env")
+
 
 def top_players(request: Request):
-    db_path = os.getenv("DB_PATH")
+    db_path = config.get("DB_PATH")
     try:
         offset = int(request.args.get("offset", 0))
         limit = int(request.args.get("limit", 10))
