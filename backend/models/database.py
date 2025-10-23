@@ -160,7 +160,7 @@ def add_match(db_path: str, data: dict):
         if max_score == min_score:
             normalized_score = 50.0
         else:
-            normalized_score = 100 * \
+            normalized_score = 20 + 60 * \
                 (perf_score - min_score) / (max_score - min_score)
         normalized_scores[player_id] = normalized_score
 
