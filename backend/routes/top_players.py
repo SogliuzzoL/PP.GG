@@ -13,6 +13,7 @@ def top_players(request: Request):
     except ValueError:
         return jsonify({"error": "Invalid offset or limit parameter"}), 400
 
+    print(db_path)
     players = top_players_model(db_path, offset, limit)
 
     return jsonify({"top_players": players}), 200
