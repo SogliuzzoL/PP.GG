@@ -138,7 +138,7 @@ async def weights(interaction: discord.Interaction):
             if isinstance(stats, dict):
                 # If the value is a dictionary, format its contents
                 value_str = "\n".join(
-                    [f"{k.replace('_', ' ').title()}: {v:.4f}" for k, v in stats.items()])
+                    [f"{k.replace('_', ' ').title()}: {v:.4f}" for k, v in stats.items() if v != 0])
                 embed.add_field(name=role.replace('_', ' ').title(),
                                 value=value_str, inline=False)
             else:

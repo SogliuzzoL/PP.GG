@@ -15,6 +15,10 @@ def insert_player_match_stats(db_path: str,
                               gold: int,
                               damage_dealt: int,
                               vision_score: int,
+                              cc_score: int,
+                              healing_done: int,
+                              shield_amount: int,
+                              damage_taken: int,
                               is_winner: bool,
                               ):
     conn = sqlite3.connect(db_path)
@@ -25,14 +29,16 @@ def insert_player_match_stats(db_path: str,
         INSERT INTO player_match_stats (
             match_id, player_id, champion, team, position, level,
             kills, deaths, assists, creep_score, gold_earned,
-            damage_dealt, vision_score, winner
+            damage_dealt, vision_score, cc_score, healing_done, 
+            shield_amount, damage_taken, winner
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             match_id, player_id, champion, team, position, level,
             kills, deaths, assists, cs, gold,
-            damage_dealt, vision_score, is_winner
+            damage_dealt, vision_score, cc_score,
+            healing_done, shield_amount, damage_taken, is_winner
         )
     )
 

@@ -1,4 +1,5 @@
 import numpy as np
+from config.weights import activate_weights
 
 
 class RecursiveLeastSquares:
@@ -6,7 +7,7 @@ class RecursiveLeastSquares:
         self.n_features = n_features
         self.lambda_ = lambda_  # Facteur d'oubli
         # Poids initiaux positifs
-        self.weights = np.array([0.25 for _ in range(n_features)])
+        self.weights = np.array([0.1 for _ in range(n_features)])
         self.P = np.eye(n_features) * 1000  # Matrice de covariance initiale
 
     def update(self, x: np.ndarray, y: float) -> np.ndarray:
@@ -20,7 +21,7 @@ class RecursiveLeastSquares:
         self.weights += K * (y - x.T @ self.weights)
 
         # Projection sur les valeurs positives
-        self.weights = np.clip(self.weights, 10e-3, 10)
+        self.weights = np.clip(self.weights, 10e-4, 10)
 
         # Mise à jour de la matrice de covariance
         self.P -= K[:, np.newaxis] * x.T @ self.P
@@ -51,6 +52,7 @@ class KalmanSkillFilter:
 def compute_performance_score(
     weights: dict,
     game_duration: float,
+    position: str,
     kills: int,
     deaths: int,
     assists: int,
@@ -58,6 +60,10 @@ def compute_performance_score(
     gold: int,
     damage_dealt: int,
     vision_score: int,
+    cc_score: int,
+    healing_done: int,
+    shield_amount: int,
+    damage_taken: int
 ) -> float:
     """Calcule le score de performance normalisé."""
     kda = (kills + assists) / max(1, deaths)
@@ -65,15 +71,24 @@ def compute_performance_score(
     gold_per_minute = gold / max(1, game_duration) / 100
     damage_dealt_per_minute = damage_dealt / max(1, game_duration) / 100
     vision = vision_score / 10
+    cc_per_minute = cc_score / max(1, game_duration)
+    healing_per_minute = healing_done / max(1, game_duration) / 10
+    shield_per_minute = shield_amount / max(1, game_duration) / 10
+    damage_taken_per_minute = damage_taken / max(1, game_duration) / 100
 
-    x = np.array([kda, cs_per_minute, gold_per_minute,
-                 damage_dealt_per_minute, vision])
+    x = np.array([kda, cs_per_minute, gold_per_minute, damage_dealt_per_minute, vision,
+                 cc_per_minute, healing_per_minute, shield_per_minute, damage_taken_per_minute])
 
     score = (
-        kda * weights["kda"] +
-        cs_per_minute * weights["cs"] +
-        gold_per_minute * weights["gold"] +
-        damage_dealt_per_minute * weights["damage_dealt"] +
-        vision * weights["vision_score"]
+        kda * weights.get("kda", 0) +
+        cs_per_minute * weights.get("cs", 0) +
+        gold_per_minute * weights.get("gold", 0) +
+        damage_dealt_per_minute * weights.get("damage_dealt", 0) +
+        vision * weights.get("vision_score", 0) +
+        cc_per_minute * weights.get("cc_score", 0) +
+        healing_per_minute * weights.get("healing_done", 0) +
+        shield_per_minute * weights.get("shield_amount", 0) +
+        damage_taken_per_minute * weights.get("damage_taken", 0)
     )
+
     return x, score

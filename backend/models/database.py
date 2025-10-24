@@ -2,6 +2,7 @@ import sqlite3
 from collections import defaultdict
 
 import numpy as np
+from config.weights import activate_weights, all_weights
 from models.match import insert_match
 from models.performance_weights import get_weights, insert_weights, update_weights
 from models.player import create_player, get_player, update_player
@@ -85,6 +86,10 @@ def add_match(db_path: str, data: dict):
             gold = int(stats["GOLD_EARNED"])
             damage_dealt = int(stats["TOTAL_DAMAGE_DEALT_TO_CHAMPIONS"])
             vision_score = int(stats["VISION_SCORE"])
+            cc_score = int(stats["TOTAL_TIME_CROWD_CONTROL_DEALT"])
+            healing_done = int(stats["TOTAL_HEAL_ON_TEAMMATES"])
+            shield_amount = int(stats["TOTAL_DAMAGE_SHIELDED_ON_TEAMMATES"])
+            damage_taken = int(stats["TOTAL_DAMAGE_SELF_MITIGATED"])
             is_winner = team_side == winner
 
             # Insérer les stats du joueur pour ce match
@@ -103,6 +108,10 @@ def add_match(db_path: str, data: dict):
                 gold,
                 damage_dealt,
                 vision_score,
+                cc_score,
+                healing_done,
+                shield_amount,
+                damage_taken,
                 is_winner
             )
 
@@ -117,6 +126,10 @@ def add_match(db_path: str, data: dict):
                 "gold": gold,
                 "damage_dealt": damage_dealt,
                 "vision_score": vision_score,
+                "cc_score": cc_score,
+                "healing_done": healing_done,
+                "shield_amount": shield_amount,
+                "damage_taken": damage_taken,
                 "is_winner": is_winner
             }
 
@@ -131,19 +144,12 @@ def add_match(db_path: str, data: dict):
 
             weights, _ = get_weights(db_path, position)
             if weights is None:
-                weights = {
-                    "kda": 0.1,
-                    "cs": 0.1,
-                    "gold": 0.1,
-                    "damage_dealt": 0.1,
-                    "vision_score": 0.1
-                }
+                weights = {key: 0.1 for key in activate_weights[position]}
 
-            x_top, perf_score_top = compute_performance_score(weights, game_duration, top_player["kills"], top_player["deaths"], top_player[
-                                                              "assists"], top_player["cs"], top_player["gold"], top_player["damage_dealt"], top_player["vision_score"])
-            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, bot_player["kills"], bot_player["deaths"], bot_player[
-                                                              "assists"], bot_player["cs"], bot_player["gold"], bot_player["damage_dealt"], bot_player["vision_score"])
-
+            x_top, perf_score_top = compute_performance_score(weights, game_duration, top_player["position"], top_player["kills"], top_player["deaths"], top_player["assists"], top_player["cs"], top_player[
+                                                              "gold"], top_player["damage_dealt"], top_player["vision_score"], top_player["cc_score"], top_player["healing_done"], top_player["shield_amount"], top_player["damage_taken"])
+            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, bot_player["position"], bot_player["kills"], bot_player["deaths"], bot_player["assists"], bot_player["cs"], bot_player[
+                                                              "gold"], bot_player["damage_dealt"], bot_player["vision_score"], bot_player["cc_score"], bot_player["healing_done"], bot_player["shield_amount"], bot_player["damage_taken"])
             player_performance_data[top_player["player_id"]] = {
                 "perf_score": perf_score_top, "x": x_top, "position": position, "is_winner": top_player["is_winner"], "riot_id": top_player["riot_id"]}
             player_performance_data[bot_player["player_id"]] = {
@@ -166,6 +172,7 @@ def add_match(db_path: str, data: dict):
 
     for position, players in lane_players.items():
         if players["top"] and players["bot"]:
+            n = len(activate_weights[position])
             top_player = players["top"]
             bot_player = players["bot"]
 
@@ -174,14 +181,8 @@ def add_match(db_path: str, data: dict):
 
             weights, matrix_P = get_weights(db_path, position)
             if weights is None:
-                weights = {
-                    "kda": 0.1,
-                    "cs": 0.1,
-                    "gold": 0.1,
-                    "damage_dealt": 0.1,
-                    "vision_score": 0.1
-                }
-                matrix_P = np.eye(5)
+                weights = {key: 0.1 for key in activate_weights[position]}
+                matrix_P = np.eye(n)
                 insert_weights(db_path, position, weights, matrix_P)
 
             win_point_top = 60 if top_player["is_winner"] else 40
@@ -199,16 +200,16 @@ def add_match(db_path: str, data: dict):
             x_top = player_performance_data[top_player_id]["x"]
             x_bot = player_performance_data[bot_player_id]["x"]
 
-            rls = RecursiveLeastSquares(n_features=5)
+            rls = RecursiveLeastSquares(n_features=n)
             rls.P = matrix_P
-            rls.weights = np.array([weights["kda"], weights["cs"], weights["gold"],
-                                   weights["damage_dealt"], weights["vision_score"]])
+            rls.weights = np.array([value for value in weights.values()])
 
             rls.update(x_top, y_top)
             rls.update(x_bot, y_bot)
 
-            new_weights = {"kda": float(rls.weights[0]), "cs": float(rls.weights[1]), "gold": float(
-                rls.weights[2]), "damage_dealt": float(rls.weights[3]), "vision_score": float(rls.weights[4])}
+            new_weights = {key: float(rls.weights[i])
+                           for i, key in enumerate(weights.keys())}
+
             update_weights(db_path, position, new_weights, rls.P)
 
             skill_top = get_player_skill(db_path, top_player_id)
@@ -297,7 +298,8 @@ def get_all_weights(db_path: str):
     cursor = conn.cursor()
 
     query = """
-    SELECT role, kda_weight, cs_weight, gold_weight, damage_weight, vision_weight, matrix_P
+    SELECT role, kda_weight, cs_weight, gold_weight, damage_weight, vision_weight,
+    cc_weight, healt_weight, shield_weight, damage_taken_weight, matrix_P
     FROM performance_weights;
     """
     cursor.execute(query)
@@ -305,7 +307,7 @@ def get_all_weights(db_path: str):
 
     weights_dict = {}
     for row in results:
-        position, weight_kda, weight_cs, weight_gold, weight_damage_dealt, weight_vision_score, matrix_P_blob = row
+        position, weight_kda, weight_cs, weight_gold, weight_damage_dealt, weight_vision_score, weight_cc, weight_healing_done, weight_shield_amount, weight_damage_taken, matrix_P_blob = row
         matrix_P = np.frombuffer(
             matrix_P_blob, dtype=np.float64).reshape((5, 5))
         weights_dict[position] = {
@@ -314,6 +316,10 @@ def get_all_weights(db_path: str):
             "gold": weight_gold,
             "damage_dealt": weight_damage_dealt,
             "vision_score": weight_vision_score,
+            "cc_score": weight_cc,
+            "healing_done": weight_healing_done,
+            "shield_amount": weight_shield_amount,
+            "damage_taken": weight_damage_taken,
             "P_trace": float(np.trace(matrix_P))
         }
 

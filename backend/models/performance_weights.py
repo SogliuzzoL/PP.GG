@@ -1,6 +1,7 @@
 import sqlite3
 
 import numpy as np
+from config.weights import activate_weights, all_weights
 
 
 def get_weights(db_path: str, position: str) -> dict | None:
@@ -17,10 +18,12 @@ def get_weights(db_path: str, position: str) -> dict | None:
     row = request.fetchone()
     weights = None
     matrix_P = None
-    keys = ["kda", "cs", "gold", "damage_dealt", "vision_score"]
+
     if row:
-        weights = {key: row[i] for i, key in zip(range(2, 7), keys)}
-        matrix_P = np.frombuffer(row[7], dtype=np.float64).reshape((5, 5))
+        weights = {key: row[i] for i, key in zip(
+            range(2, 11), all_weights) if key in activate_weights[position]}
+        n = len(activate_weights[position])
+        matrix_P = np.frombuffer(row[7], dtype=np.float64).reshape((n, n))
 
     cursor.close()
     conn.commit()
@@ -35,16 +38,21 @@ def insert_weights(db_path: str, position: str, weights: dict, maxtrix_P: np.nda
 
     cursor.execute(
         """
-        INSERT INTO performance_weights (role, kda_weight, cs_weight, gold_weight, damage_weight, vision_weight, matrix_P)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO performance_weights (role, kda_weight, cs_weight, gold_weight, damage_weight, 
+        vision_weight, cc_weight, healt_weight, shield_weight, damage_taken_weight, matrix_P)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             position,
-            weights["kda"],
-            weights["cs"],
-            weights["gold"],
-            weights["damage_dealt"],
-            weights["vision_score"],
+            weights.get("kda", 0),
+            weights.get("cs", 0),
+            weights.get("gold", 0),
+            weights.get("damage_dealt", 0),
+            weights.get("vision_score", 0),
+            weights.get("cc_score", 0),
+            weights.get("healing_done", 0),
+            weights.get("shield_amount", 0),
+            weights.get("damage_taken", 0),
             maxtrix_P
         ),
     )
@@ -61,15 +69,20 @@ def update_weights(db_path: str, position: str, weights: dict, matrix_P: np.ndar
     cursor.execute(
         """
         UPDATE performance_weights
-        SET kda_weight = ?, cs_weight = ?, gold_weight = ?, damage_weight = ?, vision_weight = ?, matrix_P = ?
+        SET kda_weight = ?, cs_weight = ?, gold_weight = ?, damage_weight = ?, vision_weight = ?,
+        cc_weight = ?, healt_weight = ?, shield_weight = ?, damage_taken_weight = ?, matrix_P = ?
         WHERE role = ?
         """,
         (
-            weights.get("kda", 0.5),
-            weights.get("cs", 0.5),
-            weights.get("gold", 0.05),
-            weights.get("damage_dealt", 0.05),
-            weights.get("vision_score", 0.5),
+            weights.get("kda", 0),
+            weights.get("cs", 0),
+            weights.get("gold", 0),
+            weights.get("damage_dealt", 0),
+            weights.get("vision_score", 0),
+            weights.get("cc_score", 0),
+            weights.get("healing_done", 0),
+            weights.get("shield_amount", 0),
+            weights.get("damage_taken", 0),
             matrix_P,
             position,
         ),

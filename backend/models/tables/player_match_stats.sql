@@ -13,6 +13,10 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     gold_earned INTEGER,
     damage_dealt INTEGER,
     vision_score INTEGER,
+    cc_score INTEGER,
+    healing_done INTEGER,
+    shield_amount INTEGER,
+    damage_taken INTEGER,
     winner BOOLEAN,
     FOREIGN KEY(match_id) REFERENCES matches(match_id),
     FOREIGN KEY(player_id) REFERENCES players(player_id)
