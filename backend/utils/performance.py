@@ -63,7 +63,8 @@ def compute_performance_score(
     cc_score: int,
     healing_done: int,
     shield_amount: int,
-    damage_taken: int
+    damage_taken: int,
+    heal: int
 ) -> float:
     """Calcule le score de performance normalisé."""
     kda = (kills + assists) / max(1, deaths)
@@ -74,7 +75,8 @@ def compute_performance_score(
     cc_per_minute = cc_score / max(1, game_duration)
     healing_per_minute = healing_done / max(1, game_duration) / 10
     shield_per_minute = shield_amount / max(1, game_duration) / 10
-    damage_taken_per_minute = damage_taken / max(1, game_duration) / 100
+    damage_taken_per_minute = (damage_taken + heal) / \
+        max(1, game_duration) / 100
 
     x = np.array([kda, cs_per_minute, gold_per_minute, damage_dealt_per_minute, vision,
                  cc_per_minute, healing_per_minute, shield_per_minute, damage_taken_per_minute])

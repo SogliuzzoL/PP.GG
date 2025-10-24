@@ -90,6 +90,7 @@ def add_match(db_path: str, data: dict):
             healing_done = int(stats["TOTAL_HEAL_ON_TEAMMATES"])
             shield_amount = int(stats["TOTAL_DAMAGE_SHIELDED_ON_TEAMMATES"])
             damage_taken = int(stats["TOTAL_DAMAGE_SELF_MITIGATED"])
+            heal = int(stats["TOTAL_HEAL"])
             is_winner = team_side == winner
 
             # Insérer les stats du joueur pour ce match
@@ -112,6 +113,7 @@ def add_match(db_path: str, data: dict):
                 healing_done,
                 shield_amount,
                 damage_taken,
+                heal,
                 is_winner
             )
 
@@ -130,6 +132,7 @@ def add_match(db_path: str, data: dict):
                 "healing_done": healing_done,
                 "shield_amount": shield_amount,
                 "damage_taken": damage_taken,
+                "heal": heal,
                 "is_winner": is_winner
             }
 
@@ -148,9 +151,9 @@ def add_match(db_path: str, data: dict):
             print(weights, position)
 
             x_top, perf_score_top = compute_performance_score(weights, game_duration, position, top_player["kills"], top_player["deaths"], top_player["assists"], top_player["cs"], top_player[
-                                                              "gold"], top_player["damage_dealt"], top_player["vision_score"], top_player["cc_score"], top_player["healing_done"], top_player["shield_amount"], top_player["damage_taken"])
+                                                              "gold"], top_player["damage_dealt"], top_player["vision_score"], top_player["cc_score"], top_player["healing_done"], top_player["shield_amount"], top_player["damage_taken"], top_player["heal"])
             x_bot, perf_score_bot = compute_performance_score(weights, game_duration, position, bot_player["kills"], bot_player["deaths"], bot_player["assists"], bot_player["cs"], bot_player[
-                                                              "gold"], bot_player["damage_dealt"], bot_player["vision_score"], bot_player["cc_score"], bot_player["healing_done"], bot_player["shield_amount"], bot_player["damage_taken"])
+                                                              "gold"], bot_player["damage_dealt"], bot_player["vision_score"], bot_player["cc_score"], bot_player["healing_done"], bot_player["shield_amount"], bot_player["damage_taken"], bot_player["heal"])
             player_performance_data[top_player["player_id"]] = {
                 "perf_score": perf_score_top, "x": x_top, "position": position, "is_winner": top_player["is_winner"], "riot_id": top_player["riot_id"]}
             player_performance_data[bot_player["player_id"]] = {
