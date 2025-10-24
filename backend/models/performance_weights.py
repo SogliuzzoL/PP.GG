@@ -23,7 +23,7 @@ def get_weights(db_path: str, position: str) -> dict | None:
         weights = {key: row[i] for i, key in zip(
             range(2, 11), all_weights) if key in activate_weights[position]}
         n = len(activate_weights[position])
-        matrix_P = np.frombuffer(row[7], dtype=np.float64).reshape((n, n))
+        matrix_P = np.frombuffer(row[11], dtype=np.float64).reshape((n, n))
 
     cursor.close()
     conn.commit()

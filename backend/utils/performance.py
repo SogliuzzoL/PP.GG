@@ -91,4 +91,26 @@ def compute_performance_score(
         damage_taken_per_minute * weights.get("damage_taken", 0)
     )
 
+    x = []
+
+    for feature in activate_weights[position]:
+        if feature == "kda":
+            x.append(kda)
+        elif feature == "cs":
+            x.append(cs_per_minute)
+        elif feature == "gold":
+            x.append(gold_per_minute)
+        elif feature == "damage_dealt":
+            x.append(damage_dealt_per_minute)
+        elif feature == "vision_score":
+            x.append(vision)
+        elif feature == "cc_score":
+            x.append(cc_per_minute)
+        elif feature == "healing_done":
+            x.append(healing_per_minute)
+        elif feature == "shield_amount":
+            x.append(shield_per_minute)
+        elif feature == "damage_taken":
+            x.append(damage_taken_per_minute)
+    x = np.array(x)
     return x, score

@@ -145,10 +145,11 @@ def add_match(db_path: str, data: dict):
             weights, _ = get_weights(db_path, position)
             if weights is None:
                 weights = {key: 0.1 for key in activate_weights[position]}
+            print(weights, position)
 
-            x_top, perf_score_top = compute_performance_score(weights, game_duration, top_player["position"], top_player["kills"], top_player["deaths"], top_player["assists"], top_player["cs"], top_player[
+            x_top, perf_score_top = compute_performance_score(weights, game_duration, position, top_player["kills"], top_player["deaths"], top_player["assists"], top_player["cs"], top_player[
                                                               "gold"], top_player["damage_dealt"], top_player["vision_score"], top_player["cc_score"], top_player["healing_done"], top_player["shield_amount"], top_player["damage_taken"])
-            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, bot_player["position"], bot_player["kills"], bot_player["deaths"], bot_player["assists"], bot_player["cs"], bot_player[
+            x_bot, perf_score_bot = compute_performance_score(weights, game_duration, position, bot_player["kills"], bot_player["deaths"], bot_player["assists"], bot_player["cs"], bot_player[
                                                               "gold"], bot_player["damage_dealt"], bot_player["vision_score"], bot_player["cc_score"], bot_player["healing_done"], bot_player["shield_amount"], bot_player["damage_taken"])
             player_performance_data[top_player["player_id"]] = {
                 "perf_score": perf_score_top, "x": x_top, "position": position, "is_winner": top_player["is_winner"], "riot_id": top_player["riot_id"]}
@@ -202,7 +203,9 @@ def add_match(db_path: str, data: dict):
 
             rls = RecursiveLeastSquares(n_features=n)
             rls.P = matrix_P
+            print(weights)
             rls.weights = np.array([value for value in weights.values()])
+            print(rls.weights)
 
             rls.update(x_top, y_top)
             rls.update(x_bot, y_bot)
@@ -308,8 +311,9 @@ def get_all_weights(db_path: str):
     weights_dict = {}
     for row in results:
         position, weight_kda, weight_cs, weight_gold, weight_damage_dealt, weight_vision_score, weight_cc, weight_healing_done, weight_shield_amount, weight_damage_taken, matrix_P_blob = row
+        n = len(activate_weights[position])
         matrix_P = np.frombuffer(
-            matrix_P_blob, dtype=np.float64).reshape((5, 5))
+            matrix_P_blob, dtype=np.float64).reshape((n, n))
         weights_dict[position] = {
             "kda": weight_kda,
             "cs": weight_cs,
