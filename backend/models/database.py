@@ -89,7 +89,7 @@ def add_match(db_path: str, data: dict):
             cc_score = int(stats["TOTAL_TIME_CROWD_CONTROL_DEALT"])
             healing_done = int(stats["TOTAL_HEAL_ON_TEAMMATES"])
             shield_amount = int(stats["TOTAL_DAMAGE_SHIELDED_ON_TEAMMATES"])
-            damage_taken = int(stats["TOTAL_DAMAGE_SELF_MITIGATED"])
+            damage_blocked = int(stats["TOTAL_DAMAGE_SELF_MITIGATED"])
             heal = int(stats["TOTAL_HEAL"])
             is_winner = team_side == winner
 
@@ -112,7 +112,7 @@ def add_match(db_path: str, data: dict):
                 cc_score,
                 healing_done,
                 shield_amount,
-                damage_taken,
+                damage_blocked,
                 heal,
                 is_winner
             )
@@ -131,7 +131,7 @@ def add_match(db_path: str, data: dict):
                 "cc_score": cc_score,
                 "healing_done": healing_done,
                 "shield_amount": shield_amount,
-                "damage_taken": damage_taken,
+                "damage_blocked": damage_blocked,
                 "heal": heal,
                 "is_winner": is_winner
             }
@@ -148,12 +148,11 @@ def add_match(db_path: str, data: dict):
             weights, _ = get_weights(db_path, position)
             if weights is None:
                 weights = {key: 0.1 for key in activate_weights[position]}
-            print(weights, position)
 
             x_top, perf_score_top = compute_performance_score(weights, game_duration, position, top_player["kills"], top_player["deaths"], top_player["assists"], top_player["cs"], top_player[
-                                                              "gold"], top_player["damage_dealt"], top_player["vision_score"], top_player["cc_score"], top_player["healing_done"], top_player["shield_amount"], top_player["damage_taken"], top_player["heal"])
+                                                              "gold"], top_player["damage_dealt"], top_player["vision_score"], top_player["cc_score"], top_player["healing_done"], top_player["shield_amount"], top_player["damage_blocked"], top_player["heal"])
             x_bot, perf_score_bot = compute_performance_score(weights, game_duration, position, bot_player["kills"], bot_player["deaths"], bot_player["assists"], bot_player["cs"], bot_player[
-                                                              "gold"], bot_player["damage_dealt"], bot_player["vision_score"], bot_player["cc_score"], bot_player["healing_done"], bot_player["shield_amount"], bot_player["damage_taken"], bot_player["heal"])
+                                                              "gold"], bot_player["damage_dealt"], bot_player["vision_score"], bot_player["cc_score"], bot_player["healing_done"], bot_player["shield_amount"], bot_player["damage_blocked"], bot_player["heal"])
             player_performance_data[top_player["player_id"]] = {
                 "perf_score": perf_score_top, "x": x_top, "position": position, "is_winner": top_player["is_winner"], "riot_id": top_player["riot_id"]}
             player_performance_data[bot_player["player_id"]] = {
@@ -193,8 +192,6 @@ def add_match(db_path: str, data: dict):
             win_point_bot = 60 if bot_player["is_winner"] else 40
 
             alpha = 1 / (1 + matrix_P.trace())
-            print(
-                f"Position: {position}, Alpha: {alpha}, Matrix P Trace: {matrix_P.trace()}")
 
             y_top = normalized_scores[top_player_id] * \
                 alpha + (1 - alpha) * win_point_top
@@ -206,9 +203,7 @@ def add_match(db_path: str, data: dict):
 
             rls = RecursiveLeastSquares(n_features=n)
             rls.P = matrix_P
-            print(weights)
             rls.weights = np.array([value for value in weights.values()])
-            print(rls.weights)
 
             rls.update(x_top, y_top)
             rls.update(x_bot, y_bot)

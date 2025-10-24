@@ -21,7 +21,7 @@ class RecursiveLeastSquares:
         self.weights += K * (y - x.T @ self.weights)
 
         # Projection sur les valeurs positives
-        self.weights = np.clip(self.weights, 10e-4, 10)
+        self.weights = np.clip(self.weights, 10e-5, 10)
 
         # Mise à jour de la matrice de covariance
         self.P -= K[:, np.newaxis] * x.T @ self.P
@@ -63,7 +63,7 @@ def compute_performance_score(
     cc_score: int,
     healing_done: int,
     shield_amount: int,
-    damage_taken: int,
+    damage_blocked: int,
     heal: int
 ) -> float:
     """Calcule le score de performance normalisé."""
@@ -75,7 +75,7 @@ def compute_performance_score(
     cc_per_minute = cc_score / max(1, game_duration)
     healing_per_minute = healing_done / max(1, game_duration) / 10
     shield_per_minute = shield_amount / max(1, game_duration) / 10
-    damage_taken_per_minute = (damage_taken + heal) / \
+    damage_taken_per_minute = (damage_blocked + heal) / \
         max(1, game_duration) / 100
 
     x = np.array([kda, cs_per_minute, gold_per_minute, damage_dealt_per_minute, vision,
