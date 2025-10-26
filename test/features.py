@@ -85,7 +85,7 @@ def select_features_intelligently(correlation_matrix, win_threshold, internal_th
     """
     Algorithme de sélection de features basé sur la corrélation.
     """
-    correlations_with_win = correlation_matrix['win'].abs().drop('win')
+    correlations_with_win = correlation_matrix['win'].drop('win')
     candidates = correlations_with_win[correlations_with_win >= win_threshold]
     sorted_candidates = candidates.sort_values(ascending=False)
 
@@ -100,7 +100,7 @@ def select_features_intelligently(correlation_matrix, win_threshold, internal_th
         for selected_feature in final_features:
             internal_correlation = correlation_matrix.loc[new_feature,
                                                           selected_feature]
-            if abs(internal_correlation) > internal_threshold:
+            if internal_correlation > internal_threshold:
                 is_redundant = True
                 break
 
