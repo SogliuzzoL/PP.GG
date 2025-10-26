@@ -170,6 +170,7 @@ def analyze_and_recommend_features(folder_path, win_corr_threshold=0.40, interna
     print(f"(Basé sur {len(df) // 10} parties analysées)\n")
     print("activate_weights = {")
     for role, features in recommended_config.items():
+        print(f'    # n_features: {len(features)},')
         print(f'    "{role}": {features},')
     print("}")
 
