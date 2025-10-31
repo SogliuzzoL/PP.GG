@@ -1,12 +1,9 @@
 import os
 import sqlite3
-
-import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 from flask import Request, jsonify, send_file
-
-# Import de la fonction clé pour récupérer les données
 from models.database import get_all_historical_data
 
 # Désactiver l'avertissement de Matplotlib pour l'utilisation dans un thread
@@ -15,20 +12,18 @@ plt.switch_backend('Agg')
 # Les rôles valides (pour la sécurité et la validation)
 VALID_ROLES = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"]
 
-
-def generate_matrix_image(role: str, db_path: str) -> tuple[str, str | None]:
+def generate_matrix_image(role: str, db_path: str) -> (str, str | None):
     """
     Génère l'image de la matrice de corrélation pour un rôle.
     Utilise les données de la base de données.
     Retourne (chemin_du_fichier, message_erreur | None).
     """
-
+    
     # 1. Définir le chemin de sortie (à la racine du projet)
     file_name = f"correlation_matrix_{role}.png"
     # Le chemin est construit depuis ce fichier (backend/routes/)
     # en remontant de deux niveaux (..) pour atteindre la racine du projet.
-    file_path = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), '..', '..', file_name))
+    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', file_name))
 
     conn = None
     try:
@@ -37,8 +32,7 @@ def generate_matrix_image(role: str, db_path: str) -> tuple[str, str | None]:
         # get_all_historical_data calcule déjà les métriques _per_min, kda, etc.
         all_data_df = get_all_historical_data(conn)
     except Exception as e:
-        print(
-            f"Erreur lors de la connexion BDD ou get_all_historical_data: {e}")
+        print(f"Erreur lors de la connexion BDD ou get_all_historical_data: {e}")
         return None, f"Database error: {e}"
     finally:
         if conn:
@@ -51,36 +45,36 @@ def generate_matrix_image(role: str, db_path: str) -> tuple[str, str | None]:
     # 3. Filtrer les données pour le rôle
     role_df = all_data_df[all_data_df['role'] == role]
     if len(role_df) < 2:
-        print(
-            f"Pas assez de données pour le rôle {role} (besoin d'au moins 2).")
+        print(f"Pas assez de données pour le rôle {role} (besoin d'au moins 2).")
         return None, f"Not enough data for role: {role} (need at least 2 entries)."
 
     # 4. Préparer le DataFrame pour la corrélation
     numeric_role_df = role_df.select_dtypes(include=['number'])
-
-    # Exclure les colonnes non pertinentes pour la corrélation
-    cols_to_drop = [col for col in [
-        'match_id', 'team_damage_percentage'] if col in numeric_role_df.columns]
+    
+    # --- MODIFICATION ICI ---
+    # Ne supprimer que 'match_id', qui n'est pas une métrique de performance
+    cols_to_drop = [col for col in ['match_id'] if col in numeric_role_df.columns]
     if cols_to_drop:
         numeric_role_df = numeric_role_df.drop(columns=cols_to_drop)
-
+    
     # Calculer la matrice
     correlation_matrix = numeric_role_df.corr()
 
     # 5. Générer le graphique
     try:
-        plt.figure(figsize=(14, 12))
+        # Augmenter la taille pour une meilleure lisibilité avec plus de métriques
+        plt.figure(figsize=(16, 14))
         sns.heatmap(correlation_matrix, annot=True,
                     cmap='coolwarm', fmt=".2f", linewidths=.5, vmin=-1, vmax=1)
         plt.title(f'Matrice de Corrélation (Live) - Rôle : {role}')
-
+        
         # 6. Sauvegarder l'image
         plt.savefig(file_path, bbox_inches='tight')
         plt.close()  # Important pour libérer la mémoire dans un serveur
-
+        
         print(f"Matrice régénérée : {file_path}")
         return file_path, None
-
+        
     except Exception as e:
         print(f"Erreur lors de la génération du PNG: {e}")
         # S'assurer de fermer la figure en cas d'erreur
