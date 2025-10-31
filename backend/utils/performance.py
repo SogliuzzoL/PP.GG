@@ -13,12 +13,13 @@ class RecursiveLeastSquares:
         K = (self.P @ x) / (self.lambda_ + x.T @ self.P @ x)
         self.weights += K * (y - x.T @ self.weights)
         # Projection pour garder les poids positifs et stables
-        self.weights = np.clip(self.weights, 10e-5, 100)
+        # self.weights = np.clip(self.weights, 10e-5, 100 / self.n_features)
         self.P -= K[:, np.newaxis] * x.T @ self.P
         return self.weights
 
 
 class KalmanSkillFilter:
+    # Valeurs par défaut centrées sur 50
     def __init__(self, mu0=50.0, sigma0=50/3, Q=0.1, R=1.0):
         self.mu = mu0
         self.sigma2 = sigma0**2
@@ -36,3 +37,21 @@ class KalmanSkillFilter:
 
     def get_state(self):
         return self.mu, np.sqrt(self.sigma2)
+
+
+def calculate_z_scores(stats_list: list[float]) -> list[float]:
+    """
+    Calcule le Z-Score pour une liste de statistiques 
+    (ex: le GPM des 10 joueurs de la partie).
+    """
+    stats_np = np.array(stats_list)
+    mean = np.mean(stats_np)
+    std = np.std(stats_np)
+
+    # Empêcher la division par zéro si tout le monde a la même stat (std=0)
+    # Si l'écart-type est nul, tout le monde est "moyen" (Z-Score = 0)
+    if std == 0:
+        return [0.0] * len(stats_list)
+
+    z_scores = (stats_np - mean) / std
+    return z_scores.tolist()

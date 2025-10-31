@@ -37,7 +37,6 @@ def add_match(request: Request):
             f"**{player}**\n"
             f"μ=`{stats['mu']:.2f}` | σ=`{stats['sigma']:.2f}`\n"
             f"Perf. Score: `{stats['normalized_score']:.2f}`\n"
-            f"α=`{stats['alpha']:.3f}` | y=`{stats['y']:.2f}`"
         )
         # Normaliser le nom de la position
         position = stats["position"].upper()

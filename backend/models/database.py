@@ -14,10 +14,12 @@ from models.player_skill import (
     insert_player_skill,
     update_player_skill,
 )
-
-# Importe depuis vos fichiers utils séparés
 from utils.feature_selector import recommend_features
-from utils.performance import KalmanSkillFilter, RecursiveLeastSquares
+from utils.performance import (
+    KalmanSkillFilter,
+    RecursiveLeastSquares,
+    calculate_z_scores,
+)
 
 
 def initialize_db(db_path: str):
@@ -76,30 +78,23 @@ def get_all_historical_data(conn: sqlite3.Connection):
         df = pd.DataFrame()
 
     if df.empty:
-        return pd.DataFrame(columns=[
-            "win", "role", "kda", "kill_participation", "cs_per_min", "gold_per_min",
-            "damage_dealt_per_min", "team_damage_percentage", "vision_score_per_min",
-            "vision_control_per_min", "cc_score_per_min", "healing_on_teammates_per_min",
-            "shields_on_teammates_per_min", "effective_tanking_per_min"
-        ])
+        return pd.DataFrame()  # Retourne un DF vide, les appelants doivent vérifier
 
-    # --- CORRECTION KeyError 'role' ---
+    # --- Renommage et conversion ---
     if 'position' in df.columns:
         df.rename(columns={'position': 'role'}, inplace=True)
     else:
         print("Erreur critique : La colonne 'position' est manquante dans la BDD.")
         return pd.DataFrame()
 
-    # --- CORRECTION KeyError 'win' ---
     if 'winner' in df.columns:
         df['win'] = df['winner'].astype(int)
-        # Supprime la colonne 'winner' originale
         df = df.drop(columns=['winner'])
     else:
         print("Erreur critique : La colonne 'winner' est manquante dans la BDD.")
         return pd.DataFrame()
-    # --- FIN DES CORRECTIONS ---
 
+    # --- Calcul des métriques ---
     df['game_duration'] = df['game_duration'].replace(0, 1)
     df['kda'] = (df['kills'] + df['assists']) / df['deaths'].replace(0, 1)
     df['kill_participation'] = (
@@ -113,6 +108,16 @@ def get_all_historical_data(conn: sqlite3.Connection):
     df['vision_score_per_min'] = df['vision_score'] / df['game_duration']
     df['vision_control_per_min'] = (
         df['wards_killed'] * 1.5 + df['vision_wards_bought_in_game'] * 1.0) / df['game_duration']
+
+    # Gérer les None possibles avant les calculs
+    df['time_ccing_others'] = df['time_ccing_others'].fillna(0)
+    df['total_heal_on_teammates'] = df['total_heal_on_teammates'].fillna(0)
+    df['total_damage_shielded_on_teammates'] = df['total_damage_shielded_on_teammates'].fillna(
+        0)
+    df['total_damage_self_mitigated'] = df['total_damage_self_mitigated'].fillna(
+        0)
+    df['total_heal'] = df['total_heal'].fillna(0)
+
     df['cc_score_per_min'] = df['time_ccing_others'] / df['game_duration']
     df['healing_on_teammates_per_min'] = df['total_heal_on_teammates'] / \
         df['game_duration']
@@ -122,52 +127,87 @@ def get_all_historical_data(conn: sqlite3.Connection):
         df['total_heal'] - df['total_heal_on_teammates'])) / df['game_duration']
 
     final_columns = [
-        "win", "role", "kda", "kill_participation", "cs_per_min", "gold_per_min",
+        "match_id", "win", "role", "kda", "kill_participation", "cs_per_min", "gold_per_min",
         "damage_dealt_per_min", "team_damage_percentage", "vision_score_per_min",
         "vision_control_per_min", "cc_score_per_min", "healing_on_teammates_per_min",
         "shields_on_teammates_per_min", "effective_tanking_per_min"
     ]
 
-    # S'assure que seules les colonnes qui existent réellement dans le DataFrame sont sélectionnées
-    # (au cas où une colonne n'aurait pas pu être calculée)
     existing_columns = [col for col in final_columns if col in df.columns]
+    # Remplacer les NaN/None restants par 0
+    return df[existing_columns].fillna(0)
 
-    return df[existing_columns]
 
-
-def retrain_rls_model(role, new_features, historical_df, limit=20):
+def retrain_rls_model(role: str, new_features: list, historical_df: pd.DataFrame, limit_games=20):
     """
-    Crée et réentraîne un nouveau modèle RLS sur les X dernières parties
-    pour ce rôle spécifique.
+    Réentraîne un modèle RLS en utilisant les X dernières parties,
+    en appliquant le Z-Score PAR MATCH pour la stabilité.
     """
     print(
         f"Réentraînement du modèle pour {role} avec les features : {new_features}")
 
-    role_history = historical_df[historical_df['role'] == role].tail(limit)
     n_features = len(new_features)
+    rls = RecursiveLeastSquares(n_features=n_features)
 
-    if role_history.empty or len(role_history) < 2:
+    # 1. Obtenir les X dernières parties pour ce rôle
+    role_df = historical_df[historical_df['role'] == role]
+    if role_df.empty:
         print(
-            f"Pas assez de données pour le réentraînement de {role}. Initialisation par défaut.")
-        weights = {feature: 0.1 for feature in new_features}
+            f"Pas de données historiques pour {role}. Initialisation par défaut.")
+        weights = {feature: 0.01 for feature in new_features}
         matrix_P = np.eye(n_features) * 1000
         return weights, matrix_P
 
-    rls = RecursiveLeastSquares(n_features=n_features)
-    for _, row in role_history.iterrows():
-        try:
-            x_data = [row[feature] for feature in new_features]
-            x = np.array(x_data)
-        except KeyError as e:
-            print(
-                f"Erreur: Feature '{e}' non trouvée dans les données historiques. Réinitialisation.")
-            weights = {feature: 0.1 for feature in new_features}
-            matrix_P = np.eye(n_features) * 1000
-            return weights, matrix_P
+    recent_match_ids = role_df['match_id'].unique()[-limit_games:]
 
-        y = 60.0 if row['win'] == 1 else 40.0
+    # 2. Obtenir TOUS les joueurs de ces parties (pour le contexte Z-Score)
+    train_df = historical_df[historical_df['match_id'].isin(
+        recent_match_ids)].copy()
+
+    if train_df.empty:
+        print(
+            f"Aucune donnée d'entraînement trouvée pour {role}. Initialisation par défaut.")
+        weights = {feature: 0.01 for feature in new_features}
+        matrix_P = np.eye(n_features) * 1000
+        return weights, matrix_P
+
+    # 3. Appliquer le Z-Score PAR MATCH (la clé)
+    scaled_train_df = train_df.copy()
+
+    for feature in new_features:
+        if feature not in scaled_train_df.columns:
+            print(
+                f"Attention : feature {feature} non trouvée lors du retrain.")
+            # Mettre une valeur par défaut (Z-Score de 0)
+            scaled_train_df[feature] = 0.0
+            continue
+
+        # Utilise groupby.transform pour scaler chaque joueur par rapport à son propre match
+        mean = scaled_train_df.groupby('match_id')[feature].transform('mean')
+        std = scaled_train_df.groupby('match_id')[feature].transform('std')
+
+        # Remplacer std=0 (si tous les joueurs ont la même stat) par 1 pour éviter la division par 0
+        std = std.replace(0, 1)
+
+        # <<< MODIFICATION : On garde le Z-Score brut (centré à 0)
+        z_scores = (scaled_train_df[feature] - mean) / std
+        scaled_train_df[feature] = z_scores
+
+    # 4. Entraîner le RLS uniquement sur les joueurs du bon rôle
+    role_players_to_train = scaled_train_df[scaled_train_df['role'] == role]
+
+    for _, row in role_players_to_train.iterrows():
+        try:
+            x = np.array([row[f] for f in new_features])
+        except KeyError:
+            print(f"Erreur de clé lors de la création du vecteur x pour le retrain.")
+            continue  # Ignorer cette ligne
+
+        # <<< MODIFICATION : Cible changée à +1.0 / -1.0
+        y = 1.0 if row['win'] == 1 else -1.0
         rls.update(x, y)
 
+    # 5. Retourner les poids appris
     new_weights = {name: float(val)
                    for name, val in zip(new_features, rls.weights)}
     return new_weights, rls.P
@@ -216,6 +256,8 @@ def add_match(db_path: str, data: dict):
                     role = "MIDDLE"
                 if role in ["SUPPORT", "SUPP"]:
                     role = "UTILITY"
+                if role == "UNKNOWN":
+                    role = "UTILITY"  # Fallback
 
                 kills = stats.get("CHAMPIONS_KILLED", 0)
                 deaths = stats.get("NUM_DEATHS", 0)
@@ -243,7 +285,7 @@ def add_match(db_path: str, data: dict):
                     damage_mitigated, total_heal
                 )
 
-                auto_heal = total_heal - healing_on_teammates
+                auto_heal = (total_heal or 0) - (healing_on_teammates or 0)
                 player_metrics = {
                     "kda": (kills + assists) / max(1, deaths),
                     "kill_participation": (kills + assists) / max(1, team_kills[team["teamId"]]) * 100,
@@ -253,10 +295,10 @@ def add_match(db_path: str, data: dict):
                     "team_damage_percentage": (damage_dealt / max(1, team_damage[team["teamId"]])) * 100,
                     "vision_score_per_min": vision_score / game_duration_min,
                     "vision_control_per_min": (stats.get("WARD_KILLED", 0) * 1.5 + stats.get("VISION_WARDS_BOUGHT_IN_GAME", 0) * 1.0) / game_duration_min,
-                    "cc_score_per_min": cc_score / game_duration_min,
-                    "healing_on_teammates_per_min": healing_on_teammates / game_duration_min,
-                    "shields_on_teammates_per_min": shield_on_teammates / game_duration_min,
-                    "effective_tanking_per_min": (damage_mitigated + auto_heal) / game_duration_min,
+                    "cc_score_per_min": (cc_score or 0) / game_duration_min,
+                    "healing_on_teammates_per_min": (healing_on_teammates or 0) / game_duration_min,
+                    "shields_on_teammates_per_min": (shield_on_teammates or 0) / game_duration_min,
+                    "effective_tanking_per_min": ((damage_mitigated or 0) + auto_heal) / game_duration_min,
                 }
 
                 all_players_data.append({
@@ -265,107 +307,146 @@ def add_match(db_path: str, data: dict):
                     "metrics": player_metrics
                 })
 
-        cursor.close()  # Fin des insertions
+        cursor.close()
+
+        # --- 1. Calcul Z-Score (pour CE match) ---
+        all_feature_names = [
+            "kda", "kill_participation", "cs_per_min", "gold_per_min",
+            "damage_dealt_per_min", "team_damage_percentage", "vision_score_per_min",
+            "vision_control_per_min", "cc_score_per_min", "healing_on_teammates_per_min",
+            "shields_on_teammates_per_min", "effective_tanking_per_min"
+        ]
+
+        z_scores_by_feature = {}
+        for feature_name in all_feature_names:
+            if feature_name not in all_players_data[0]["metrics"]:
+                print(
+                    f"Avertissement : {feature_name} n'est pas dans player_metrics. Ignoré.")
+                continue
+            stats_list = [p["metrics"].get(feature_name, 0)
+                          for p in all_players_data]
+            z_scores_by_feature[feature_name] = calculate_z_scores(stats_list)
+
+        # <<< MODIFICATION : 'scaled_metrics_by_feature' (50-centré) est supprimé.
+
+        # --- 2. Initialisation des Modèles RLS (avec Retraining) ---
 
         historical_df = get_all_historical_data(conn)
         new_recommended_features = recommend_features(
             historical_df, win_corr_threshold=0.40, internal_corr_threshold=0.75)
 
         rls_models = {}
-        player_perf_scores = []
+        all_roles = set(p["position"] for p in all_players_data)
 
-        for p_data in all_players_data:
-            role = p_data["position"]
-            if role == "UNKNOWN":
-                role = "UTILITY"
-                p_data["position"] = "UTILITY"
+        for role in all_roles:
+            ideal_features = new_recommended_features.get(
+                role, active_features_config.get(role))
+            if ideal_features is None:
+                ideal_features = ["kda", "gold_per_min"]
 
             stored_features, stored_weights, stored_matrix_P = get_weights_for_role(
                 conn, role)
 
-            ideal_features = new_recommended_features.get(
-                role, stored_features)
-            if ideal_features is None:
-                ideal_features = ["kda", "gold_per_min"]
-                if role == "UTILITY":
-                    ideal_features = ["kda", "vision_score_per_min"]
+            n_features = len(ideal_features)
 
-            if stored_features != ideal_features:
+            if stored_features != ideal_features or stored_weights is None:
+                print(
+                    f"Changement de features ou 1er démarrage pour {role}. Ré-entraînement...")
                 weights, matrix_P = retrain_rls_model(
-                    role, ideal_features, historical_df, limit=20)
-            elif stored_features is None:
-                n_features = len(ideal_features)
-                weights = {feature: 0.1 for feature in ideal_features}
-                matrix_P = np.eye(n_features) * 1000
+                    role, ideal_features, historical_df, limit_games=20)
             else:
                 weights = stored_weights
                 matrix_P = stored_matrix_P
 
-            n_features = len(ideal_features)
             rls = RecursiveLeastSquares(n_features=n_features)
-            rls.weights = np.array([weights.get(f, 0.1)
+            rls.weights = np.array([weights.get(f, 0.01)
                                    for f in ideal_features])
             rls.P = matrix_P
             rls_models[role] = (rls, ideal_features)
 
+        # --- 3. Calcul du Score de Performance Brut ---
+        player_perf_scores_raw = []
+        for i, p_data in enumerate(all_players_data):
+            role = p_data["position"]
+            rls, ideal_features = rls_models[role]
+
             try:
+                # <<< MODIFICATION : Utilise les Z-SCORES BRUTS (centrés à 0)
                 feature_vector = np.array(
-                    [p_data["metrics"][feature] for feature in ideal_features])
+                    [z_scores_by_feature[feature][i] for feature in ideal_features])
             except KeyError as e:
                 print(
                     f"Erreur de feature manquante pour {role}: {e}. Vecteur nul.")
-                feature_vector = np.zeros(n_features)
+                feature_vector = np.zeros(len(ideal_features))
 
             p_data["feature_vector"] = feature_vector
-            p_data["perf_score_raw"] = np.dot(rls.weights, feature_vector)
-            player_perf_scores.append(p_data["perf_score_raw"])
 
-        min_score, max_score = min(player_perf_scores), max(player_perf_scores)
+            # Le score sera maintenant centré autour de 0 (ex: -0.5 à +0.5)
+            perf_score_raw = np.dot(rls.weights, feature_vector)
+            p_data["perf_score_raw"] = perf_score_raw
+            player_perf_scores_raw.append(perf_score_raw)
+
+        # --- 4. Normalisation Min-Max du Score (20-80) ---
+        min_score = min(player_perf_scores_raw)
+        max_score = max(player_perf_scores_raw)
 
         for p_data in all_players_data:
-            if max_score == min_score:
+            perf_raw = p_data["perf_score_raw"]
+            if (max_score - min_score) == 0:
                 p_data["normalized_score"] = 50.0
             else:
                 p_data["normalized_score"] = 20 + 60 * \
-                    (p_data["perf_score_raw"] - min_score) / \
-                    (max_score - min_score)
+                    (perf_raw - min_score) / (max_score - min_score)
 
+        # --- 5. Mise à jour Kalman (Skill) et préparation RLS ---
         skills = {}
-        updated_roles = set()
+        updated_roles_data = defaultdict(list)
 
         for p_data in all_players_data:
             role = p_data["position"]
-            rls, current_features = rls_models[role]
 
-            win_point = 60 if p_data["is_winner"] else 40
-            alpha = 1 / (1 + rls.P.trace())
-            y = p_data["normalized_score"] * alpha + (1 - alpha) * win_point
+            # <<< MODIFICATION : Cible RLS changée à +1.0 / -1.0
+            y_rls = 1.0 if p_data["is_winner"] else -1.0
 
-            rls.update(p_data["feature_vector"], y)
+            # Cible Kalman est le score stable [20-80]
+            y_kalman = p_data["normalized_score"]
 
             skill = get_player_skill(conn, p_data["player_id"])
+            # Garde le 50-centré pour le MU
             mu, sigma = (50.0, 50.0 / 3) if skill is None else skill
             if skill is None:
                 insert_player_skill(conn, p_data["player_id"], mu, sigma)
 
             ksf = KalmanSkillFilter(mu0=mu, sigma0=sigma, R=sigma**2)
             ksf.predict()
-            ksf.update(y)
+            ksf.update(y_kalman)  # Update avec le score [20-80]
+
             new_mu, new_sigma = ksf.get_state()
             update_player_skill(conn, p_data["player_id"], new_mu, new_sigma)
 
-            if role not in updated_roles:
-                new_weights = {name: float(val) for name, val in zip(
-                    current_features, rls.weights)}
-                save_weights_for_role(
-                    conn, role, current_features, new_weights, rls.P)
-                updated_roles.add(role)
+            updated_roles_data[role].append({
+                "x": p_data["feature_vector"],  # Z-Score brut
+                "y": y_rls                     # Cible +1.0 / -1.0
+            })
 
             skills[p_data["riot_id"]] = {
                 "mu": new_mu, "sigma": new_sigma, "team": p_data["team_side"],
-                "normalized_score": p_data["normalized_score"], "alpha": alpha, "y": y,
+                "normalized_score": y_kalman,
+                "alpha": 1 / (1 + rls_models[role][0].P.trace()),
+                "y": y_kalman,
                 "position": role
             }
+
+        # --- 6. Mise à jour des modèles RLS (Poids) ---
+        for role, updates in updated_roles_data.items():
+            rls, current_features = rls_models[role]
+            for update_data in updates:
+                rls.update(update_data["x"], update_data["y"])
+
+            new_weights = {name: float(val) for name, val in zip(
+                current_features, rls.weights)}
+            save_weights_for_role(
+                conn, role, current_features, new_weights, rls.P)
 
         conn.commit()
         return skills, winner
@@ -373,7 +454,7 @@ def add_match(db_path: str, data: dict):
     except Exception as e:
         conn.rollback()
         print(f"Erreur lors de l'ajout du match : {e}")
-        return jsonify({"error": str(e)}), 500
+        raise e
     finally:
         conn.close()
 

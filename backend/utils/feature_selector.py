@@ -7,7 +7,7 @@ def select_features_intelligently(correlation_matrix, win_threshold, internal_th
     Ne sélectionne que les corrélations POSITIVES avec 'win'.
     """
     try:
-        correlations_with_win = correlation_matrix['win'].drop('win')
+        correlations_with_win = correlation_matrix['win'].drop('win').abs()
     except KeyError:
         print("Erreur : La colonne 'win' est absente de la matrice de corrélation.")
         return []
