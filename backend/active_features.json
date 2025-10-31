@@ -1,0 +1,28 @@
+{
+    "TOP": [
+        "kill_participation",
+        "gold_per_min",
+        "effective_tanking_per_min",
+        "damage_dealt_per_min"
+    ],
+    "JUNGLE": [
+        "gold_per_min",
+        "cs_per_min",
+        "kda"
+    ],
+    "MIDDLE": [
+        "gold_per_min",
+        "kda",
+        "damage_dealt_per_min"
+    ],
+    "BOTTOM": [
+        "kda",
+        "kill_participation"
+    ],
+    "UTILITY": [
+        "kda",
+        "kill_participation",
+        "shields_on_teammates_per_min",
+        "healing_on_teammates_per_min"
+    ]
+}

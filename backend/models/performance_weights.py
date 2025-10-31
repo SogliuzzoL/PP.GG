@@ -1,93 +1,45 @@
+import json
 import sqlite3
 
 import numpy as np
-from config.weights import activate_weights, all_weights
 
 
-def get_weights(db_path: str, position: str) -> dict | None:
-    conn = sqlite3.connect(db_path)
+def get_weights_for_role(conn: sqlite3.Connection, role: str):
     cursor = conn.cursor()
-
-    request = cursor.execute(
-        """
-        SELECT * FROM performance_weights WHERE (role = ?)
-        """,
-        (position,),
-    )
-
-    row = request.fetchone()
-    weights = None
-    matrix_P = None
-
-    if row:
-        weights = {key: row[i] for i, key in zip(
-            range(2, 11), all_weights) if key in activate_weights[position]}
-        n = len(activate_weights[position])
-        matrix_P = np.frombuffer(row[11], dtype=np.float64).reshape((n, n))
-
+    cursor.execute(
+        "SELECT features_json, weights_json, matrix_P FROM performance_weights WHERE role = ?", (role,))
+    row = cursor.fetchone()
     cursor.close()
-    conn.commit()
-    conn.close()
 
-    return weights, matrix_P
+    if not row:
+        return None, None, None
+
+    features = json.loads(row[0])
+    weights = json.loads(row[1])
+    n_features = len(features)
+    try:
+        matrix_P = np.frombuffer(row[2], dtype=np.float64).reshape(
+            (n_features, n_features))
+    except (ValueError, TypeError):
+        print(
+            f"Erreur de format de la matrice P pour {role}. Réinitialisation.")
+        matrix_P = np.eye(n_features) * 1000  # Fallback
+
+    return features, weights, matrix_P
 
 
-def insert_weights(db_path: str, position: str, weights: dict, maxtrix_P: np.ndarray):
-    conn = sqlite3.connect(db_path)
+def save_weights_for_role(conn: sqlite3.Connection, role: str, features: list, weights: dict, matrix_P: np.ndarray):
     cursor = conn.cursor()
+
+    features_json = json.dumps(features)
+    weights_json = json.dumps(weights)
+    matrix_P_blob = matrix_P.tobytes()
 
     cursor.execute(
         """
-        INSERT INTO performance_weights (role, kda_weight, cs_weight, gold_weight, damage_weight, 
-        vision_weight, cc_weight, healt_weight, shield_weight, damage_taken_weight, matrix_P)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO performance_weights (role, features_json, weights_json, matrix_P, last_updated)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
         """,
-        (
-            position,
-            weights.get("kda", 0),
-            weights.get("cs", 0),
-            weights.get("gold", 0),
-            weights.get("damage_dealt", 0),
-            weights.get("vision_score", 0),
-            weights.get("cc_score", 0),
-            weights.get("healing_done", 0),
-            weights.get("shield_amount", 0),
-            weights.get("damage_taken", 0),
-            maxtrix_P
-        ),
+        (role, features_json, weights_json, matrix_P_blob)
     )
-
     cursor.close()
-    conn.commit()
-    conn.close()
-
-
-def update_weights(db_path: str, position: str, weights: dict, matrix_P: np.ndarray):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        UPDATE performance_weights
-        SET kda_weight = ?, cs_weight = ?, gold_weight = ?, damage_weight = ?, vision_weight = ?,
-        cc_weight = ?, healt_weight = ?, shield_weight = ?, damage_taken_weight = ?, matrix_P = ?
-        WHERE role = ?
-        """,
-        (
-            weights.get("kda", 0),
-            weights.get("cs", 0),
-            weights.get("gold", 0),
-            weights.get("damage_dealt", 0),
-            weights.get("vision_score", 0),
-            weights.get("cc_score", 0),
-            weights.get("healing_done", 0),
-            weights.get("shield_amount", 0),
-            weights.get("damage_taken", 0),
-            matrix_P,
-            position,
-        ),
-    )
-
-    cursor.close()
-    conn.commit()
-    conn.close()

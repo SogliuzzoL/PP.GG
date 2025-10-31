@@ -1,10 +1,8 @@
 import sqlite3
 
 
-def insert_match(db_path: str, game_duration: int, winner: str) -> int:
-    conn = sqlite3.connect(db_path)
+def insert_match(conn: sqlite3.Connection, game_duration: float, winner: str) -> int:
     cursor = conn.cursor()
-
     cursor.execute(
         """
         INSERT INTO matches (game_duration, winner)
@@ -13,9 +11,5 @@ def insert_match(db_path: str, game_duration: int, winner: str) -> int:
         (game_duration, winner),
     )
     match_id = cursor.lastrowid
-
     cursor.close()
-    conn.commit()
-    conn.close()
-
     return match_id
