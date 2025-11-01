@@ -8,7 +8,7 @@ config = dotenv_values(".env")
 
 def add_match(request: Request):
     data = request.json
-    skills, winner = db_add_match(config["db_path"], data)
+    skills, winner, avg_skill = db_add_match(config["db_path"], data)
 
     # Webhook Discord
     discord_webhook_url = config["discord_webhook_url"]
@@ -37,6 +37,8 @@ def add_match(request: Request):
             f"**{player}**\n"
             f"μ=`{stats['mu']:.2f}` | σ=`{stats['sigma']:.2f}`\n"
             f"Perf. Score: `{stats['normalized_score']:.2f}`\n"
+            f"Difficulty: `{stats['difficulty']:.2f}`\n"
+            f"y=`{stats['y']:.2f}`"
         )
         # Normaliser le nom de la position
         position = stats["position"].upper()
@@ -91,7 +93,7 @@ def add_match(request: Request):
                 "inline": True,
             },
         ],
-        "footer": {"text": "PP.GG"},
+        "footer": {"text": f"PP.GG • Average match skill : {avg_skill:.2f}."},
     }
 
     # Envoi sur Discord

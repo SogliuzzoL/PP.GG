@@ -398,6 +398,15 @@ def add_match(db_path: str, data: dict):
                 p_data["normalized_score"] = 20 + 60 * \
                     (perf_raw - min_score) / (max_score - min_score)
 
+        # Calcul du skill moyen de la partie
+        avg_skill = 0.0
+        for p_data in all_players_data:
+            skill = get_player_skill(conn, p_data["player_id"])
+            mu = 50.0 if skill is None else skill[0]
+            avg_skill += mu
+        avg_skill /= len(all_players_data)
+        print(f"Skill moyen de la partie : {avg_skill:.2f}")
+
         # --- 5. Mise à jour Kalman (Skill) et préparation RLS ---
         skills = {}
         updated_roles_data = defaultdict(list)
@@ -408,16 +417,20 @@ def add_match(db_path: str, data: dict):
             # <<< MODIFICATION : Cible RLS changée à +1.0 / -1.0
             y_rls = 1.0 if p_data["is_winner"] else -1.0
 
-            # Cible Kalman est le score stable [20-80]
-            y_kalman = p_data["normalized_score"]
-
             skill = get_player_skill(conn, p_data["player_id"])
             # Garde le 50-centré pour le MU
             mu, sigma = (50.0, 50.0 / 3) if skill is None else skill
             if skill is None:
                 insert_player_skill(conn, p_data["player_id"], mu, sigma)
 
-            ksf = KalmanSkillFilter(mu0=mu, sigma0=sigma, R=sigma**2)
+            # Calcul de la difficulté relative
+            y_difficulty = avg_skill - mu
+
+            # Calcul de y_kalman
+            K = 0.5
+            y_kalman = p_data["normalized_score"] + K * y_difficulty
+
+            ksf = KalmanSkillFilter(mu0=mu, sigma0=sigma)
             ksf.predict()
             ksf.update(y_kalman)  # Update avec le score [20-80]
 
@@ -431,8 +444,8 @@ def add_match(db_path: str, data: dict):
 
             skills[p_data["riot_id"]] = {
                 "mu": new_mu, "sigma": new_sigma, "team": p_data["team_side"],
-                "normalized_score": y_kalman,
-                "alpha": 1 / (1 + rls_models[role][0].P.trace()),
+                "normalized_score": p_data["normalized_score"],
+                "difficulty": y_difficulty,
                 "y": y_kalman,
                 "position": role
             }
@@ -449,7 +462,7 @@ def add_match(db_path: str, data: dict):
                 conn, role, current_features, new_weights, rls.P)
 
         conn.commit()
-        return skills, winner
+        return skills, winner, avg_skill
 
     except Exception as e:
         conn.rollback()

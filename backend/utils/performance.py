@@ -20,7 +20,7 @@ class RecursiveLeastSquares:
 
 class KalmanSkillFilter:
     # Valeurs par défaut centrées sur 50
-    def __init__(self, mu0=50.0, sigma0=50/3, Q=0.1, R=1.0):
+    def __init__(self, mu0=50.0, sigma0=50/3, Q=0.1, R=100.0):
         self.mu = mu0
         self.sigma2 = sigma0**2
         self.Q = Q
