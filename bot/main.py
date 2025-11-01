@@ -154,6 +154,96 @@ async def weights(interaction: discord.Interaction):
         await interaction.followup.send(f"Une erreur est survenue: {e}")
 
 
+@bot.tree.command(name="stat", description="Affiche les statistiques d'un joueur")
+@app_commands.describe(joueur="Le Riot ID complet du joueur (ex: MonPseudo#EUW)")
+async def stat(interaction: discord.Interaction, joueur: str):
+    """Affiche les statistiques détaillées d'un joueur."""
+    await interaction.response.defer()
+
+    params = {'riot_id': joueur}
+
+    try:
+        response = requests.get(f"{BACKEND_URL}/player_stats", params=params)
+
+        if response.status_code == 404:
+            await interaction.followup.send(f"❌ Joueur non trouvé : `{joueur}`. Avez-vous bien inclus le tagline (ex: #EUW) ?")
+            return
+
+        response.raise_for_status()
+        data = response.json()
+
+        embed = discord.Embed(
+            title=f"Statistiques pour {data.get('riot_id', joueur)}",
+            color=discord.Color.purple()
+        )
+
+        embed.add_field(
+            name="📈 Classement (MMR)",
+            value=f"**μ (Niveau)**: `{data.get('mu', 0):.2f}`\n**σ (Confiance)**: `{data.get('sigma', 0):.2f}`",
+            inline=True
+        )
+
+        embed.add_field(
+            name="🎮 Activité",
+            value=f"**Parties jouées**: {data.get('total_games', 0)}\n**Winrate**: {data.get('winrate', 0):.1f}%",
+            inline=True
+        )
+
+        embed.add_field(
+            name="🏆 Identité",
+            value=f"**Rôle principal**: {data.get('main_role', 'Inconnu')}\n**Main**: {data.get('favorite_champion', 'Inconnu')}",
+            inline=True
+        )
+
+        # --- SECTION MODIFIÉE ---
+        # Affiche dynamiquement les stats RLS pour le rôle principal
+
+        role_stats = data.get('role_specific_avg_stats', {})
+
+        if role_stats:
+            stats_list = []
+            # Dictionnaire pour de plus jolis noms
+            pretty_names = {
+                "kda": "KDA",
+                "kill_participation": "KP%",
+                "cs_per_min": "CS/min",
+                "gold_per_min": "Gold/min",
+                "damage_dealt_per_min": "Dégâts/min",
+                "vision_score_per_min": "Vision/min",
+                "cc_score_per_min": "CC/min",
+                "healing_on_teammates_per_min": "Heal(Alliés)/min",
+                "shields_on_teammates_per_min": "Shield(Alliés)/min",
+                "effective_tanking_per_min": "Tanking/min"
+            }
+
+            for stat_name, stat_value in role_stats.items():
+                # Utilise le joli nom ou formate le nom de base
+                display_name = pretty_names.get(
+                    stat_name, stat_name.replace('_', ' ').title())
+
+                # Formatage spécial pour KP%
+                if stat_name == "kill_participation":
+                    stats_list.append(f"**{display_name}**: {stat_value:.1f}%")
+                else:
+                    stats_list.append(f"**{display_name}**: {stat_value:.2f}")
+
+            if stats_list:
+                embed.add_field(
+                    name=f"\u200b\n**Moyennes (Rôle: {data.get('main_role')})**",
+                    value="\n".join(stats_list),
+                    inline=True
+                )
+
+        embed.set_footer(
+            text="Statistiques basées sur l'historique de toutes les parties PP.GG")
+
+        await interaction.followup.send(embed=embed)
+
+    except requests.exceptions.RequestException as e:
+        await interaction.followup.send(f"Erreur lors de la connexion au backend : {e}")
+    except Exception as e:
+        await interaction.followup.send(f"Une erreur inattendue est survenue : {e}")
+
 # Run the bot
 if __name__ == "__main__":
     if TOKEN:

@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request
 from models.database import initialize_db
 from routes.add_match import add_match
 from routes.get_correlation_matrix import get_correlation_matrix
+from routes.get_player_stats import get_player_stats
 from routes.get_weights import get_weights
 from routes.top_players import top_players
 
@@ -41,6 +42,11 @@ def wrapper_get_weights():
 def wrapper_get_correlation_matrix(role: str):
     # Passe la requête, le 'role', et le dict de config global
     return get_correlation_matrix(request, role, config)
+
+
+@app.route("/player_stats", methods=["GET"])
+def wrapper_get_player_stats():
+    return get_player_stats(request)
 
 
 app.run(host="0.0.0.0", port=config["backend_port"], debug=True)
