@@ -172,11 +172,18 @@ async def stat(interaction: discord.Interaction, joueur: str):
         response.raise_for_status()
         data = response.json()
 
+        # --- AMÉLIORATION ESTHÉTIQUE ---
+
+        # 1. Couleur dynamique basée sur le Winrate
+        winrate = data.get('winrate', 0)
+        color = discord.Color.green() if winrate >= 50.0 else discord.Color.red()
+
         embed = discord.Embed(
             title=f"Statistiques pour {data.get('riot_id', joueur)}",
-            color=discord.Color.purple()
+            color=color
         )
 
+        # 2. Layout 2x2 (inline=True pour les deux premiers, puis les deux suivants)
         embed.add_field(
             name="📈 Classement (MMR)",
             value=f"**μ (Niveau)**: `{data.get('mu', 0):.2f}`\n**σ (Confiance)**: `{data.get('sigma', 0):.2f}`",
@@ -185,54 +192,87 @@ async def stat(interaction: discord.Interaction, joueur: str):
 
         embed.add_field(
             name="🎮 Activité",
-            value=f"**Parties jouées**: {data.get('total_games', 0)}\n**Winrate**: {data.get('winrate', 0):.1f}%",
+            value=f"**Parties jouées**: `{data.get('total_games', 0)}`\n**Winrate**: `{winrate:.1f}%`",
             inline=True
         )
 
         embed.add_field(
-            name="🏆 Identité",
-            value=f"**Rôle principal**: {data.get('main_role', 'Inconnu')}\n**Main**: {data.get('favorite_champion', 'Inconnu')}",
+            name="🛡️ Rôles",
+            value=f"**Main**: {data.get('main_role', 'Inconnu')}\n**Secondaire**: {data.get('secondary_role', 'Aucun')}",
             inline=True
         )
 
-        # --- SECTION MODIFIÉE ---
-        # Affiche dynamiquement les stats RLS pour le rôle principal
+        top_champions = data.get('top_champions', [])
+        if top_champions:
+            champ_list = [
+                f"**1.** {top_champions[0]['name']} ({top_champions[0]['count']} p.)"
+            ]
+            if len(top_champions) > 1:
+                champ_list.append(
+                    f"**2.** {top_champions[1]['name']} ({top_champions[1]['count']} p.)")
+            if len(top_champions) > 2:
+                champ_list.append(
+                    f"**3.** {top_champions[2]['name']} ({top_champions[2]['count']} p.)")
 
+            embed.add_field(
+                name="🏆 Top Champions",
+                value="\n".join(champ_list),
+                inline=True
+            )
+        else:
+            embed.add_field(name="🏆 Top Champions",
+                            value="Aucun match joué", inline=True)
+
+        # 3. Séparateur pleine largeur
+        embed.add_field(name="\u200b", value="\u200b", inline=False)
+
+        # 4. Section des moyennes (avec formatage amélioré)
         role_stats = data.get('role_specific_avg_stats', {})
 
         if role_stats:
             stats_list = []
             # Dictionnaire pour de plus jolis noms
             pretty_names = {
-                "kda": "KDA",
-                "kill_participation": "KP%",
-                "cs_per_min": "CS/min",
-                "gold_per_min": "Gold/min",
-                "damage_dealt_per_min": "Dégâts/min",
-                "vision_score_per_min": "Vision/min",
-                "cc_score_per_min": "CC/min",
+                "kda": "KDA", "kill_participation": "KP%", "cs_per_min": "CS/min",
+                "gold_per_min": "Gold/min", "damage_dealt_per_min": "Dégâts/min",
+                "vision_score_per_min": "Vision/min", "cc_score_per_min": "CC/min",
                 "healing_on_teammates_per_min": "Heal(Alliés)/min",
                 "shields_on_teammates_per_min": "Shield(Alliés)/min",
                 "effective_tanking_per_min": "Tanking/min"
             }
 
             for stat_name, stat_value in role_stats.items():
-                # Utilise le joli nom ou formate le nom de base
                 display_name = pretty_names.get(
                     stat_name, stat_name.replace('_', ' ').title())
 
-                # Formatage spécial pour KP%
-                if stat_name == "kill_participation":
-                    stats_list.append(f"**{display_name}**: {stat_value:.1f}%")
+                # 5. Formatage des chiffres (arrondis, %, etc.)
+                if "kda" in stat_name:
+                    value = f"{stat_value:.2f}"
+                elif "participation" in stat_name:
+                    value = f"{stat_value:.1f}%"
+                elif "damage_dealt" in stat_name or "tanking" in stat_name:
+                    # Pas de décimale pour les gros chiffres
+                    value = f"{stat_value:.0f}"
                 else:
-                    stats_list.append(f"**{display_name}**: {stat_value:.2f}")
+                    value = f"{stat_value:.1f}"  # 1 décimale pour le reste
+
+                stats_list.append(f"**{display_name}**: `{value}`")
 
             if stats_list:
-                embed.add_field(
-                    name=f"\u200b\n**Moyennes (Rôle: {data.get('main_role')})**",
-                    value="\n".join(stats_list),
-                    inline=True
-                )
+                title = f"📊 Moyennes (Rôle: {data.get('main_role')})"
+
+                # Divise en deux colonnes si + de 3 stats
+                if len(stats_list) > 3:
+                    mid_point = (len(stats_list) + 1) // 2
+                    col1 = "\n".join(stats_list[:mid_point])
+                    col2 = "\n".join(stats_list[mid_point:])
+
+                    embed.add_field(name=title, value=col1, inline=True)
+                    embed.add_field(name="\u200b", value=col2,
+                                    inline=True)  # Nom invisible
+                else:
+                    embed.add_field(name=title, value="\n".join(
+                        stats_list), inline=False)
 
         embed.set_footer(
             text="Statistiques basées sur l'historique de toutes les parties PP.GG")
@@ -243,6 +283,7 @@ async def stat(interaction: discord.Interaction, joueur: str):
         await interaction.followup.send(f"Erreur lors de la connexion au backend : {e}")
     except Exception as e:
         await interaction.followup.send(f"Une erreur inattendue est survenue : {e}")
+
 
 # Run the bot
 if __name__ == "__main__":

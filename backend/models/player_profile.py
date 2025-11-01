@@ -1,8 +1,6 @@
 import sqlite3
 
 import pandas as pd
-
-# --- AJOUT ---
 from models.database import get_active_features
 
 
@@ -45,8 +43,6 @@ def get_player_profile_data(db_path: str, riot_id: str):
     df = pd.read_sql_query(query, conn, params=(player_id,))
     conn.close()
 
-    # --- MODIFIÉ : Section de calcul des statistiques ---
-
     if df.empty:
         # Le joueur est dans la base mais n'a pas de matchs
         return {
@@ -56,11 +52,12 @@ def get_player_profile_data(db_path: str, riot_id: str):
             "total_games": 0,
             "winrate": 0,
             "main_role": "Inconnu",
-            "favorite_champion": "Inconnu",
-            "role_specific_avg_stats": {}  # Stats vides
+            "secondary_role": "Aucun",  # AJOUT
+            "top_champions": [],        # AJOUT
+            "role_specific_avg_stats": {}
         }
 
-    # 3. Calculer toutes les métriques possibles (pour être sûr)
+    # 3. Calculer toutes les métriques (inchangé)
     df['game_duration'] = df['game_duration'].replace(0, 1)
     df['kda'] = (df['kills'] + df['assists']) / df['deaths'].replace(0, 1)
     df['kill_participation'] = (
@@ -91,17 +88,25 @@ def get_player_profile_data(db_path: str, riot_id: str):
     df['effective_tanking_per_min'] = (df['total_damage_self_mitigated'] + (
         df['total_heal'] - df['total_heal_on_teammates'])) / df['game_duration']
 
-    # 4. Agréger les infos du profil
+    # 4. Agréger les infos du profil (MODIFIÉ)
     total_games = len(df)
     winrate = (df['winner'].sum() / total_games) * 100
-    main_role = df['position'].mode(
-    )[0] if not df['position'].empty else "Inconnu"
-    favorite_champion = df['champion'].mode(
-    )[0] if not df['champion'].empty else "Inconnu"
 
-    # 5. Récupérer les features RLS pour le rôle principal et calculer les moyennes
+    # --- NOUVELLE LOGIQUE POUR RÔLES ---
+    role_counts = df['position'].value_counts()
+    main_role = role_counts.index[0] if not role_counts.empty else "Inconnu"
+    secondary_role = role_counts.index[1] if len(role_counts) > 1 else "Aucun"
+
+    # --- NOUVELLE LOGIQUE POUR CHAMPIONS ---
+    champion_counts = df['champion'].value_counts()
+    # Prend le top 3 et le convertit en liste de dictionnaires
+    top_champions = [
+        {"name": champ, "count": int(count)}
+        for champ, count in champion_counts.head(3).items()
+    ]
+
+    # 5. Récupérer les features RLS (inchangé)
     active_features_config = get_active_features()
-    # Utilise une liste de base si le rôle est "Inconnu"
     features_for_role = active_features_config.get(
         main_role, ["kda", "gold_per_min"])
 
@@ -110,10 +115,9 @@ def get_player_profile_data(db_path: str, riot_id: str):
         if feature in df.columns:
             role_specific_avg_stats[feature] = df[feature].mean()
         else:
-            # Sécurité au cas où une feature active n'existe pas
             role_specific_avg_stats[feature] = 0.0
 
-    # 6. Retourner le profil complet
+    # 6. Retourner le profil complet (MODIFIÉ)
     return {
         "riot_id": riot_id,
         "mu": mu,
@@ -121,6 +125,7 @@ def get_player_profile_data(db_path: str, riot_id: str):
         "total_games": total_games,
         "winrate": winrate,
         "main_role": main_role,
-        "favorite_champion": favorite_champion,
-        "role_specific_avg_stats": role_specific_avg_stats  # Renvoie les stats spécifiques
+        "secondary_role": secondary_role,   # AJOUT
+        "top_champions": top_champions,     # AJOUT
+        "role_specific_avg_stats": role_specific_avg_stats
     }
