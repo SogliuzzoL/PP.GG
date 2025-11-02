@@ -2,6 +2,7 @@ import sqlite3
 
 import pandas as pd
 from models.database import get_active_features
+from models.performance_weights import get_weights_for_role
 
 
 def get_player_profile_data(db_path: str, riot_id: str):
@@ -41,7 +42,6 @@ def get_player_profile_data(db_path: str, riot_id: str):
     WHERE pms.player_id = ?
     """
     df = pd.read_sql_query(query, conn, params=(player_id,))
-    conn.close()
 
     if df.empty:
         # Le joueur est dans la base mais n'a pas de matchs
@@ -105,10 +105,23 @@ def get_player_profile_data(db_path: str, riot_id: str):
         for champ, count in champion_counts.head(3).items()
     ]
 
-    # 5. Récupérer les features RLS (inchangé)
-    active_features_config = get_active_features()
-    features_for_role = active_features_config.get(
-        main_role, ["kda", "gold_per_min"])
+    # 5. Récupérer les features RLS (MODIFIÉ pour lire la BDD)
+
+    # Essayer de récupérer les features ACTUELLEMENT utilisées depuis la BDD
+    stored_features, _, _ = get_weights_for_role(conn, main_role)
+
+    print("Features utilisées pour le rôle", main_role, ":", stored_features)
+
+    if stored_features:
+        # Utilise les features stockées dans la BDD
+        features_for_role = stored_features
+    else:
+        # Fallback sur active_features.json si le rôle n'est pas encore dans la BDD
+        active_features_config = get_active_features()
+        features_for_role = active_features_config.get(
+            main_role, ["kda", "gold_per_min"])
+
+    conn.close()
 
     role_specific_avg_stats = {}
     for feature in features_for_role:
