@@ -280,6 +280,8 @@ async def stat(interaction: discord.Interaction, joueur: str):
                     embed.add_field(name=title, value="\n".join(
                         stats_list), inline=False)
 
+        embed.add_field(name="\u200b", value="\u200b", inline=False)
+
         secondary_role_stats = data.get('secondary_role_avg_stats', {})
 
         if secondary_role_stats:
