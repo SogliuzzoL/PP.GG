@@ -205,20 +205,20 @@ async def stat(interaction: discord.Interaction, joueur: str):
         top_champions = data.get('top_champions', [])
         if top_champions:
             champ_list = [
-                f"**1.** {top_champions[0]['name']} ({top_champions[0]['count']} p., {top_champions[0]['winrate']:.1f}%)"
+                f"**1.** {top_champions[0]['name']} ({top_champions[0]['count']} p.) - {top_champions[0]['winrate']:.1f}% winrate"
             ]
             if len(top_champions) > 1:
                 champ_list.append(
-                    f"**2.** {top_champions[1]['name']} ({top_champions[1]['count']} p., {top_champions[1]['winrate']:.1f}%)")
+                    f"**2.** {top_champions[1]['name']} ({top_champions[1]['count']} p.) - {top_champions[1]['winrate']:.1f}% winrate")
             if len(top_champions) > 2:
                 champ_list.append(
-                    f"**3.** {top_champions[2]['name']} ({top_champions[2]['count']} p., {top_champions[2]['winrate']:.1f}%)")
+                    f"**3.** {top_champions[2]['name']} ({top_champions[2]['count']} p.) - {top_champions[2]['winrate']:.1f}% winrate")
             if len(top_champions) > 3:
                 champ_list.append(
-                    f"**4.** {top_champions[3]['name']} ({top_champions[3]['count']} p., {top_champions[3]['winrate']:.1f}%)")
+                    f"**4.** {top_champions[3]['name']} ({top_champions[3]['count']} p.) - {top_champions[3]['winrate']:.1f}% winrate")
             if len(top_champions) > 4:
                 champ_list.append(
-                    f"**5.** {top_champions[4]['name']} ({top_champions[4]['count']} p., {top_champions[4]['winrate']:.1f}%)")
+                    f"**5.** {top_champions[4]['name']} ({top_champions[4]['count']} p.) - {top_champions[4]['winrate']:.1f}% winrate")
 
             embed.add_field(
                 name="🏆 Top Champions",
