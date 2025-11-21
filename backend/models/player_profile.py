@@ -99,7 +99,8 @@ def get_player_profile_data(db_path: str, riot_id: str):
     champion_counts = df['champion'].value_counts()
     print("Champion counts for", riot_id, ":", champion_counts.to_dict())
     top_champions = [
-        {"name": champ, "count": int(count)}
+        {"name": champ, "count": int(count), "winrate": float(
+            df[df['champion'] == champ]['winner'].mean() * 100)}
         for champ, count in champion_counts.head(5).items()
     ]
 
