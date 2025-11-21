@@ -144,6 +144,21 @@ def get_player_profile_data(db_path: str, riot_id: str):
         for feature in features_for_role:
             role_specific_avg_stats[feature] = 0.0
 
+    secondary_role_stats = {}
+    if secondary_role != "Aucun":
+        df_secondary_role = df[df['position'] == secondary_role]
+        if not df_secondary_role.empty:
+            for feature in features_for_role:
+                if feature in df_secondary_role.columns:
+                    val = df_secondary_role[feature].mean()
+                    secondary_role_stats[feature] = 0.0 if pd.isna(
+                        val) else val
+                else:
+                    secondary_role_stats[feature] = 0.0
+        else:
+            for feature in features_for_role:
+                secondary_role_stats[feature] = 0.0
+
     # 6. Retourner le profil complet
     return {
         "riot_id": riot_id,
@@ -154,5 +169,6 @@ def get_player_profile_data(db_path: str, riot_id: str):
         "main_role": main_role,
         "secondary_role": secondary_role,
         "top_champions": top_champions,
-        "role_specific_avg_stats": role_specific_avg_stats
+        "role_specific_avg_stats": role_specific_avg_stats,
+        "secondary_role_avg_stats": secondary_role_stats
     }
