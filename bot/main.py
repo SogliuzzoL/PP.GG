@@ -213,6 +213,12 @@ async def stat(interaction: discord.Interaction, joueur: str):
             if len(top_champions) > 2:
                 champ_list.append(
                     f"**3.** {top_champions[2]['name']} ({top_champions[2]['count']} p.)")
+            if len(top_champions) > 3:
+                champ_list.append(
+                    f"**4.** {top_champions[3]['name']} ({top_champions[3]['count']} p.)")
+            if len(top_champions) > 4:
+                champ_list.append(
+                    f"**5.** {top_champions[4]['name']} ({top_champions[4]['count']} p.)")
 
             embed.add_field(
                 name="🏆 Top Champions",

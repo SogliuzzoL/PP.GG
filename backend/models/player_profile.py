@@ -100,7 +100,7 @@ def get_player_profile_data(db_path: str, riot_id: str):
     print("Champion counts for", riot_id, ":", champion_counts.to_dict())
     top_champions = [
         {"name": champ, "count": int(count)}
-        for champ, count in champion_counts.head(3).items()
+        for champ, count in champion_counts.head(5).items()
     ]
 
     # 5. Récupérer les features RLS
