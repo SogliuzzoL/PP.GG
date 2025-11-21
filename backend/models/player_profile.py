@@ -97,6 +97,7 @@ def get_player_profile_data(db_path: str, riot_id: str):
     secondary_role = role_counts.index[1] if len(role_counts) > 1 else "Aucun"
 
     champion_counts = df['champion'].value_counts()
+    print("Champion counts for", riot_id, ":", champion_counts.to_dict())
     top_champions = [
         {"name": champ, "count": int(count)}
         for champ, count in champion_counts.head(3).items()
