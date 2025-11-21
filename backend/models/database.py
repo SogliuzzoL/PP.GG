@@ -332,8 +332,7 @@ def add_match(db_path: str, data: dict):
         # --- 2. Initialisation des Modèles RLS (avec Retraining) ---
 
         historical_df = get_all_historical_data(conn)
-        new_recommended_features = recommend_features(
-            historical_df, win_corr_threshold=0.40, internal_corr_threshold=0.75)
+        new_recommended_features = recommend_features(historical_df)
 
         rls_models = {}
         all_roles = set(p["position"] for p in all_players_data)

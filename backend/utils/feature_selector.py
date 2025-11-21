@@ -36,7 +36,7 @@ def select_features_intelligently(correlation_matrix, win_threshold, internal_th
     return final_features
 
 
-def recommend_features(all_games_df, win_corr_threshold=0.40, internal_corr_threshold=0.75):
+def recommend_features(all_games_df, win_corr_threshold=0.25, internal_corr_threshold=0.75):
     """
     Analyse le DataFrame de toutes les parties et recommande les meilleures features par rôle.
     """
