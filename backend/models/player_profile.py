@@ -105,17 +105,22 @@ def get_player_profile_data(db_path: str, riot_id: str):
 
     # 5. Récupérer les features RLS
     # On cherche les poids qui correspondent au MAIN ROLE
-    stored_features, _, _ = get_weights_for_role(conn, main_role)
+    # stored_features, _, _ = get_weights_for_role(conn, main_role)
     conn.close()  # On peut fermer ici car on a fini avec SQL
 
     # print("Features utilisées pour le rôle", main_role, ":", stored_features)
 
-    if stored_features:
-        features_for_role = stored_features
-    else:
-        active_features_config = get_active_features()
-        features_for_role = active_features_config.get(
-            main_role, ["kda", "gold_per_min"])
+    # if stored_features:
+    #     features_for_role = stored_features
+    # else:
+    #     active_features_config = get_active_features()
+    #     features_for_role = active_features_config.get(
+    #         main_role, ["kda", "gold_per_min"])
+
+    features_for_role = ["kda", "kill_participation", "cs_per_min", "gold_per_min",
+                         "damage_dealt_per_min", "vision_score_per_min",
+                         "cc_score_per_min", "healing_on_teammates_per_min",
+                         "shields_on_teammates_per_min", "effective_tanking_per_min"]
 
     # --- CORRECTION PRINCIPALE ---
     # On crée un DataFrame filtré qui ne contient QUE les matchs du main_role
