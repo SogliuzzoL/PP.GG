@@ -479,7 +479,7 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10):
         SELECT riot_id, skill_mu, skill_sigma
         FROM players
         JOIN player_skill ON players.player_id = player_skill.player_id
-        ORDER BY skill_mu DESC
+        ORDER BY (skill_mu - 3 * skill_sigma) DESC
         LIMIT ? OFFSET ?;
         """
         cursor.execute(query, (limit, offset))
