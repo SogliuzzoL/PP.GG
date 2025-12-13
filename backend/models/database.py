@@ -475,11 +475,12 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10):
     conn = sqlite3.connect(db_path)
     try:
         cursor = conn.cursor()
+        # On calcule (mu - 3*sigma) sous le nom 'rating' pour le tri et l'affichage
         query = """
-        SELECT riot_id, skill_mu, skill_sigma
+        SELECT riot_id, skill_mu, skill_sigma, (skill_mu - 3 * skill_sigma) as rating
         FROM players
         JOIN player_skill ON players.player_id = player_skill.player_id
-        ORDER BY (skill_mu - 3 * skill_sigma) DESC
+        ORDER BY rating DESC
         LIMIT ? OFFSET ?;
         """
         cursor.execute(query, (limit, offset))
@@ -493,11 +494,14 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10):
 
     top_players_list = []
     for row in results:
-        riot_id, mu, sigma = row
+        riot_id, mu, sigma, rating = row
         top_players_list.append({
             "riot_id": riot_id,
-            "mu": mu,
-            "sigma": sigma
+            # On peut garder mu et sigma pour le détail, ou les cacher si on veut simplifier
+            "mu": round(mu, 2),
+            "sigma": round(sigma, 2),
+            # Ce 'rating' est ce que le joueur doit regarder pour son classement
+            "rating": round(rating, 2) 
         })
     return top_players_list
 
