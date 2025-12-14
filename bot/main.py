@@ -43,58 +43,38 @@ class TopPlayersPaginator(discord.ui.View):
             return None
 
     async def create_embed(self, players_data):
-        """Creates a polished embed for the current page of players."""
-
-        # Calcul du numéro de page actuel
-        page_num = self.current_offset // self.limit + 1
-
         embed = discord.Embed(
-            title=f"🏆 Classement des Joueurs • Page {page_num}",
-            description="Voici les meilleurs joueurs actuels classés par Rating.",
-            # Or pour la page 1, Bleu pour les autres
-            color=0xFFD700 if page_num == 1 else discord.Color.blue()
+            title=f"🏆 Top Players - Page {self.current_offset // self.limit + 1}",
+            # Une couleur sombre (Dark theme) ou .blue()
+            color=discord.Color.from_rgb(47, 49, 54)
         )
 
-        # Ajout d'une image de trophée ou logo du serveur (optionnel)
-        # embed.set_thumbnail(url="URL_DE_TON_LOGO_OU_TROPHEE")
-
         if not players_data:
-            embed.description = "🚫 **Aucun joueur à afficher pour le moment.**"
+            embed.description = "Il n'y a plus de joueurs à afficher."
         else:
-            for i, player in enumerate(players_data, start=1 + self.current_offset):
-                # Gestion du Riot ID
+            for i, player in enumerate(players_data, start=1+self.current_offset):
                 riot_id = player.get('riot_id', 'Unknown#')
+                # On garde ta logique exacte pour le nom
                 game_name, tag_line = riot_id.split(
                     '#', 1) if '#' in riot_id else (riot_id, '')
 
-                # Logique pour les médailles
-                if i == 1:
-                    rank_display = "🥇 1er"
-                elif i == 2:
-                    rank_display = "🥈 2ème"
-                elif i == 3:
-                    rank_display = "🥉 3ème"
-                else:
-                    rank_display = f"#{i}"
+                # Médailles
+                rank_map = {1: "🥇", 2: "🥈", 3: "🥉"}
+                rank_emoji = rank_map.get(i, f"**#{i}**")
 
-                # Récupération des stats
                 rating = player.get('rating', 0)
                 mu = player.get('mu', 0)
                 sigma = player.get('sigma', 0)
 
-                # Création du champ (Field)
+                # LE CHANGEMENT EST ICI :
+                # On met le nom en clair dans le titre du field
+                # On utilise ">" pour créer un bloc "citation" qui contient les stats
+                # On met le Rating entre ` ` pour le faire ressortir comme un bouton
                 embed.add_field(
-                    name=f"{rank_display} • {game_name}#{tag_line}",
-                    # On met tout sur une ligne. Les stats techniques sont entre parenthèses pour être plus discrètes.
-                    value=f"🛡️ **{rating:.2f}** `μ={mu:.1f} | σ={sigma:.1f}`",
-                    inline=False
+                    name=f"{rank_emoji} • {game_name}#{tag_line}",
+                    value=f"> 🛡️ Rating: `{rating:.2f}`\n> *μ={mu:.1f} • σ={sigma:.1f}*",
+                    inline=True
                 )
-
-        # Footer pour contexte
-        embed.set_footer(
-            text=f"Classé par TrueSkill • {len(players_data)} joueurs affichés sur cette page")
-        embed.timestamp = discord.utils.utcnow()
-
         return embed
 
     async def update_message(self):
