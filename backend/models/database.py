@@ -471,19 +471,19 @@ def add_match(db_path: str, data: dict):
         conn.close()
 
 
-def top_players(db_path: str, offset: int = 0, limit: int = 10):
+def top_players(db_path: str, offset: int = 0, limit: int = 10, time_limit: int = 1):
     conn = sqlite3.connect(db_path)
     try:
         cursor = conn.cursor()
-        # On calcule (mu - 3*sigma) sous le nom 'rating' pour le tri et l'affichage
         query = """
         SELECT riot_id, skill_mu, skill_sigma, (skill_mu - 3 * skill_sigma) as rating, last_updated
         FROM players
         JOIN player_skill ON players.player_id = player_skill.player_id
+        WHERE last_updated > DATETIME('now', '-' || ? || ' months')
         ORDER BY rating DESC
         LIMIT ? OFFSET ?;
         """
-        cursor.execute(query, (limit, offset))
+        cursor.execute(query, (time_limit, limit, offset))
         results = cursor.fetchall()
         cursor.close()
     except Exception as e:
