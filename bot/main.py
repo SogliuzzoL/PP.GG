@@ -85,7 +85,7 @@ class TopPlayersPaginator(discord.ui.View):
                 # Création du champ (Field)
                 # On utilise des backticks (`) pour créer une police à chasse fixe pour les chiffres
                 embed.add_field(
-                    name=f"{rank_display} • {game_name} `#{tag_line}`",
+                    name=f"{rank_display} • {game_name}#{tag_line}",
                     value=f"> 🛡️ **Rating:** `{rating:.2f}`\n> 📊 **Mu:** `{mu:.2f}` • **Sigma:** `{sigma:.2f}`",
                     inline=False
                 )
