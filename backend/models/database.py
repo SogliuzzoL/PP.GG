@@ -477,7 +477,7 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10):
         cursor = conn.cursor()
         # On calcule (mu - 3*sigma) sous le nom 'rating' pour le tri et l'affichage
         query = """
-        SELECT riot_id, skill_mu, skill_sigma, (skill_mu - 3 * skill_sigma) as rating
+        SELECT riot_id, skill_mu, skill_sigma, (skill_mu - 3 * skill_sigma) as rating, last_updated
         FROM players
         JOIN player_skill ON players.player_id = player_skill.player_id
         ORDER BY rating DESC
@@ -494,14 +494,15 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10):
 
     top_players_list = []
     for row in results:
-        riot_id, mu, sigma, rating = row
+        riot_id, mu, sigma, rating, last_updated = row
         top_players_list.append({
             "riot_id": riot_id,
             # On peut garder mu et sigma pour le détail, ou les cacher si on veut simplifier
-            "mu": round(mu, 2),
-            "sigma": round(sigma, 2),
+            "mu": mu,
+            "sigma": sigma,
             # Ce 'rating' est ce que le joueur doit regarder pour son classement
-            "rating": round(rating, 2) 
+            "rating": rating,
+            "last_updated": last_updated
         })
     return top_players_list
 
