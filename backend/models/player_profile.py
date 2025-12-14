@@ -15,7 +15,7 @@ def get_player_profile_data(db_path: str, riot_id: str):
     # 1. Trouver le joueur et son MMR
     cursor.execute(
         """
-        SELECT p.player_id, ps.skill_mu, ps.skill_sigma
+        SELECT p.player_id, ps.skill_mu, ps.skill_sigma, ps.skill_mu - 3 * ps.skill_sigma AS rating
         FROM players p
         LEFT JOIN player_skill ps ON p.player_id = ps.player_id
         WHERE p.riot_id = ?
@@ -28,11 +28,12 @@ def get_player_profile_data(db_path: str, riot_id: str):
         conn.close()
         return None  # Joueur non trouvé
 
-    player_id, mu, sigma = player_data
+    player_id, mu, sigma, rating = player_data
 
     if mu is None:
         mu = 50.0
         sigma = 50.0 / 3
+        rating = mu - 3 * sigma
 
     # 2. Récupérer toutes les stats de match pour ce joueur
     query = """
@@ -47,6 +48,7 @@ def get_player_profile_data(db_path: str, riot_id: str):
         conn.close()
         return {
             "riot_id": riot_id,
+            "rating": rating,
             "mu": mu,
             "sigma": sigma,
             "total_games": 0,
@@ -162,6 +164,7 @@ def get_player_profile_data(db_path: str, riot_id: str):
     # 6. Retourner le profil complet
     return {
         "riot_id": riot_id,
+        "rating": rating,
         "mu": mu,
         "sigma": sigma,
         "total_games": total_games,
