@@ -56,7 +56,7 @@ class TopPlayersPaginator(discord.ui.View):
 
                 embed.add_field(
                     name=f"#{i} - {game_name}#{tag_line}",
-                    value=f"μ={player.get('mu', 0):.2f} σ={player.get('sigma', 0):.2f}",
+                    value=f"Rating = {player.get('rating', 0):.2f} μ={player.get('mu', 0):.2f} σ={player.get('sigma', 0):.2f}",
                     inline=False
                 )
         return embed
@@ -186,7 +186,7 @@ async def stat(interaction: discord.Interaction, joueur: str):
         # 2. Layout 2x2 (inline=True pour les deux premiers, puis les deux suivants)
         embed.add_field(
             name="📈 Classement (MMR)",
-            value=f"**μ (Niveau)**: `{data.get('mu', 0):.2f}`\n**σ (Confiance)**: `{data.get('sigma', 0):.2f}`",
+            value=f"**Rating**: `{data.get('rating', 0):.2f}`\n**μ (Niveau)**: `{data.get('mu', 0):.2f}`\n**σ (Confiance)**: `{data.get('sigma', 0):.2f}`",
             inline=True
         )
 

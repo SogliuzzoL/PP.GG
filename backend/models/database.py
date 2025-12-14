@@ -471,7 +471,7 @@ def add_match(db_path: str, data: dict):
         conn.close()
 
 
-def top_players(db_path: str, offset: int = 0, limit: int = 10, time_limit: int = 15):
+def top_players(db_path: str, offset: int = 0, limit: int = 10, time_limit: int = 30):
     conn = sqlite3.connect(db_path)
     try:
         cursor = conn.cursor()
