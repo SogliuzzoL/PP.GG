@@ -73,7 +73,7 @@ class TopPlayersPaginator(discord.ui.View):
                 embed.add_field(
                     name=f"{rank_emoji} • {game_name}#{tag_line}",
                     value=f"> 🛡️ Rating: `{rating:.2f}`\n> *μ={mu:.1f} • σ={sigma:.1f}*",
-                    inline=True
+                    inline=False
                 )
         return embed
 
