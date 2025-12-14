@@ -18,7 +18,7 @@ def update_player_skill(conn: sqlite3.Connection, player_id: int, mu: float, sig
     cursor.execute(
         """
         UPDATE player_skill
-        SET skill_mu = ?, skill_sigma = ?
+        SET skill_mu = ?, skill_sigma = ?, last_updated = CURRENT_TIMESTAMP
         WHERE player_id = ?
         """,
         (mu, sigma, player_id),
