@@ -471,7 +471,7 @@ def add_match(db_path: str, data: dict):
         conn.close()
 
 
-def top_players(db_path: str, offset: int = 0, limit: int = 10, time_limit: int = 1):
+def top_players(db_path: str, offset: int = 0, limit: int = 10, time_limit: int = 15):
     conn = sqlite3.connect(db_path)
     try:
         cursor = conn.cursor()
@@ -479,7 +479,7 @@ def top_players(db_path: str, offset: int = 0, limit: int = 10, time_limit: int 
         SELECT riot_id, skill_mu, skill_sigma, (skill_mu - 3 * skill_sigma) as rating, last_updated
         FROM players
         JOIN player_skill ON players.player_id = player_skill.player_id
-        WHERE last_updated > DATETIME('now', '-' || ? || ' months')
+        WHERE last_updated > DATETIME('now', '-' || ? || ' days')
         ORDER BY rating DESC
         LIMIT ? OFFSET ?;
         """

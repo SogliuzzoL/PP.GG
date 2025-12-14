@@ -10,7 +10,7 @@ def top_players(request: Request):
     try:
         offset = int(request.args.get("offset", 0))
         limit = int(request.args.get("limit", 10))
-        time_limit = int(request.args.get("time_limit", 1))
+        time_limit = int(request.args.get("time_limit", 15))  # in days
     except ValueError:
         return jsonify({"error": "Invalid offset or limit parameter"}), 400
 
