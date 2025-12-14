@@ -83,10 +83,10 @@ class TopPlayersPaginator(discord.ui.View):
                 sigma = player.get('sigma', 0)
 
                 # Création du champ (Field)
-                # On utilise des backticks (`) pour créer une police à chasse fixe pour les chiffres
                 embed.add_field(
                     name=f"{rank_display} • {game_name}#{tag_line}",
-                    value=f"> 🛡️ **Rating:** `{rating:.2f}`\n> 📊 **Mu:** `{mu:.2f}` • **Sigma:** `{sigma:.2f}`",
+                    # On met tout sur une ligne. Les stats techniques sont entre parenthèses pour être plus discrètes.
+                    value=f"🛡️ **{rating:.2f}** `μ={mu:.1f} | σ={sigma:.1f}`",
                     inline=False
                 )
 
