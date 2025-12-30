@@ -17,10 +17,9 @@ class MatchService:
         self.analytics_service = AnalyticsService()
 
     def process_match(self, match_data):
-        # ... (Logique identique à avant : extraction, création match...) ...
+        # ... Extraction données (identique) ...
         duration = match_data.get("gameLength", 1) / 60.0
         teams = match_data["teams"]
-
         is_blue_winner = (teams[0]["isBottomTeam"] and teams[0]["isWinningTeam"]) or \
                          (not teams[0]["isBottomTeam"]
                           and not teams[0]["isWinningTeam"])
@@ -33,7 +32,6 @@ class MatchService:
 
         for team in teams:
             team_side_code = "bot" if team["isBottomTeam"] else "top"
-            # Affichage clair : Bot = Blue (généralement), Top = Red
             display_side = "Blue" if team["isBottomTeam"] else "Red"
             is_winner = (team_side_code == winner_side)
 
@@ -43,6 +41,7 @@ class MatchService:
                              for p in team["players"])
 
             for p_raw in team["players"]:
+                # ... Gestion Identité (identique) ...
                 puuid = p_raw["puuid"]
                 riot_id = f"{p_raw['riotIdGameName']}#{p_raw['riotIdTagLine']}"
                 pid = self.player_repo.get_player_id(puuid)
@@ -60,7 +59,7 @@ class MatchService:
                 if role == "UNKNOWN":
                     role = "UTILITY"
 
-                # ... (Calcul Metrics inchangé) ...
+                # ... Calcul Metrics (identique) ...
                 metrics = {
                     "kda": (stats.get("CHAMPIONS_KILLED", 0) + stats.get("ASSISTS", 0)) / max(1, stats.get("NUM_DEATHS", 1)),
                     "kills_per_min": stats.get("CHAMPIONS_KILLED", 0) / duration,
@@ -79,7 +78,7 @@ class MatchService:
                     "effective_tanking_per_min": (stats.get("TOTAL_DAMAGE_SELF_MITIGATED", 0) + (stats.get("TOTAL_HEAL", 0) - stats.get("TOTAL_HEAL_ON_TEAMMATES", 0))) / duration,
                 }
 
-                # ... (Sauvegarde DB Stats inchangée) ...
+                # ... DB Stats (identique) ...
                 db_stats = {
                     "champion_name": p_raw.get("championName"),
                     "team_side": team_side_code,
@@ -118,18 +117,27 @@ class MatchService:
                     "champion": p_raw.get("championName")
                 })
 
+        # Orchestration
         hist_df = self.match_repo.get_historical_data_dataframe()
         self.scoring_service.ensure_models_up_to_date(hist_df)
 
+        # 1. Calcul RLS
+        players_processing_list = self.scoring_service.calculate_match_scores(
+            players_processing_list)
+        # 2. Calcul XGBoost
+        players_processing_list = self.analytics_service.compute_shadow_scores(
+            match_id, players_processing_list)
+
+        # 3. Mise à jour MMR (avec XGBoost)
         avg_match_skill = avg_skill_acc / \
             len(players_processing_list) if players_processing_list else 50.0
-        scored_players = self.scoring_service.calculate_match_scores(
-            players_processing_list)
-        final_players = self.scoring_service.update_skills_and_weights(
-            scored_players, avg_match_skill)
-        final_players = self.analytics_service.compute_shadow_scores(
-            match_id, final_players)
+        final_players = self.scoring_service.update_player_skills(
+            players_processing_list, avg_match_skill, score_key='shadow_score')
 
+        # 4. Update RLS (Background)
+        self.scoring_service.update_rls_weights(final_players)
+
+        # 5. Webhook
         self._send_discord_webhook(
             match_id, winner_side, duration, final_players)
 
@@ -139,35 +147,22 @@ class MatchService:
         if not Config.DISCORD_WEBHOOK_URL:
             return
 
-        # Organisation : 2 listes pour les 2 colonnes
         roles_order = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"]
-
-        # On regroupe par rôle pour s'assurer qu'ils sont bien face à face
-        # même si l'ordre dans la liste 'players' est aléatoire
         blue_team_map = {
             p['role']: p for p in players if p['display_side'] == "Blue"}
         red_team_map = {
             p['role']: p for p in players if p['display_side'] == "Red"}
 
-        # Construction du texte pour chaque colonne
-        col_blue_text = ""
-        col_red_text = ""
+        col_blue_text, col_red_text = "", ""
 
         for role in roles_order:
             role_icon = self._get_role_icon(role)
-
-            # --- Joueur Bleu ---
-            p_blue = blue_team_map.get(role)
-            block_blue = self._format_player_block(p_blue, role_icon)
-            col_blue_text += block_blue + "\n"  # Saut de ligne entre joueurs
-
-            # --- Joueur Rouge ---
-            p_red = red_team_map.get(role)
-            block_red = self._format_player_block(p_red, role_icon)
-            col_red_text += block_red + "\n"
+            col_blue_text += self._format_player_block(
+                blue_team_map.get(role), role_icon) + "\n"
+            col_red_text += self._format_player_block(
+                red_team_map.get(role), role_icon) + "\n"
 
         winner_display = "BLUE" if winner == "bot" else "RED"
-        # Vert (Win) si c'est Blue qui gagne (souvent "nous"), sinon Rouge
         color = 5763719 if winner_display == "BLUE" else 15548997
 
         embed = {
@@ -175,18 +170,10 @@ class MatchService:
             "description": f"**Vainqueur:** {winner_display} Side • ⏱️ **{int(duration)} min**",
             "color": color,
             "fields": [
-                {
-                    "name": "🔵 Équipe Bleue",
-                    "value": col_blue_text,
-                    "inline": True
-                },
-                {
-                    "name": "🔴 Équipe Rouge",
-                    "value": col_red_text,
-                    "inline": True
-                }
+                {"name": "🔵 Équipe Bleue", "value": col_blue_text, "inline": True},
+                {"name": "🔴 Équipe Rouge", "value": col_red_text, "inline": True}
             ],
-            "footer": {"text": "PP.GG Analytics • RLS vs XGBoost Comparison"},
+            "footer": {"text": "PP.GG v2 • Powered by XGBoost"},
             "timestamp": datetime.datetime.utcnow().isoformat()
         }
 
@@ -196,41 +183,37 @@ class MatchService:
             print(f"❌ Erreur Discord: {e}")
 
     def _format_player_block(self, p, role_icon):
-        """Formate un bloc de texte de hauteur fixe pour un joueur."""
         if not p:
-            # Bloc vide de hauteur équivalente (3 lignes) pour maintenir l'alignement
             return f"{role_icon} **AFK**\n-\n-\n"
 
-        champ = p.get('champion', '?')
-        # Scores
-        rls = p.get('normalized_score', 50)
         xgb = p.get('shadow_score', 0)
+        rls = p.get('normalized_score', 50)
 
-        # Delta XGB (Est-ce que l'IA te trouve meilleur que l'algo classique ?)
         delta = xgb - rls
         trend = "➖"
-        if delta > 8:
+        if delta > 5:
             trend = "📈"
-        elif delta < -8:
+        elif delta < -5:
             trend = "📉"
 
-        # Stats
+        # Rating Update
+        old_rating = p.get('old_mu', 50.0)
+        new_rating = p.get('new_mu', 50.0)
+        diff = new_rating - old_rating
+        diff_str = f"+{diff:.1f}" if diff > 0 else f"{diff:.1f}"
+
         m = p['metrics']
         stats = f"KDA: {m['kda']:.1f} • DPM: {int(m['damage_dealt_per_min'])}"
 
-        # Lignes (Hauteur stricte : 3 lignes de contenu + 1 marge)
-        # Ligne 1 : Icone Role + Nom + Champ
-        l1 = f"{role_icon} **{p['riot_id']}** ({champ})"
-        # Ligne 2 : Scores
-        l2 = f"📊 **{rls:.1f}** `(XGB: {xgb:.1f} {trend})`"
-        # Ligne 3 : Stats
-        l3 = f"⚔️ {stats}"
+        l1 = f"{role_icon} **{p['riot_id']}**"
+        l2 = f"👨‍🦯 Champion: **{p.get('champion', '?')}**"
+        l3 = f"📊 Rating: **{xgb:.1f}** `(Legacy: {rls:.0f} {trend})`"
+        l4 = f"📈 MMR: {old_rating:.1f} ➜ **{new_rating:.1f}** ({diff_str})"
+        l5 = f"⚔️ {stats}"
 
-        # Le \n final crée l'espacement avec le joueur suivant
-        return f"{l1}\n{l2}\n{l3}\n"
+        return f"{l1}\n{l2}\n{l3}\n{l4}\n{l5}\n"
 
     def _get_role_icon(self, role):
-        icons = {
-            "TOP": "🛡️", "JUNGLE": "🌲", "MIDDLE": "🔥", "BOTTOM": "🏹", "UTILITY": "💖"
-        }
+        icons = {"TOP": "🛡️", "JUNGLE": "🌲",
+                 "MIDDLE": "🔥", "BOTTOM": "🏹", "UTILITY": "💖"}
         return icons.get(role, "❓")
