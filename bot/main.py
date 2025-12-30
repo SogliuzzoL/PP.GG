@@ -1,3 +1,5 @@
+import io
+import base64
 import json
 import os
 
@@ -354,6 +356,83 @@ async def stat(interaction: discord.Interaction, joueur: str):
         await interaction.followup.send(f"Erreur lors de la connexion au backend : {e}")
     except Exception as e:
         await interaction.followup.send(f"Une erreur inattendue est survenue : {e}")
+
+
+@bot.tree.command(name="meta", description="Analyse la méta actuelle (XGBoost) pour un rôle : quoi jouer pour gagner ?")
+@app_commands.describe(role="Le rôle à analyser")
+@app_commands.choices(role=[
+    app_commands.Choice(name="Toplane", value="TOP"),
+    app_commands.Choice(name="Jungle", value="JUNGLE"),
+    app_commands.Choice(name="Midlane", value="MIDDLE"),
+    app_commands.Choice(name="ADC (Bot)", value="BOTTOM"),
+    app_commands.Choice(name="Support", value="UTILITY"),
+])
+async def meta(interaction: discord.Interaction, role: app_commands.Choice[str]):
+    """Affiche l'analyse SHAP et les conseils tactiques pour un rôle."""
+    await interaction.response.defer()
+    selected_role = role.value  # ex: "JUNGLE"
+
+    try:
+        # Appel à la route backend créée précédemment
+        response = requests.get(f"{BACKEND_URL}/meta/{selected_role}")
+
+        # Gestion du cas où il n'y a pas assez de données
+        if response.status_code == 400:
+            error_msg = response.json().get("error", "Erreur inconnue")
+            await interaction.followup.send(f"⚠️ **Impossible d'analyser la méta** : {error_msg}")
+            return
+
+        response.raise_for_status()
+        data = response.json()
+
+        # 1. Traitement de l'image (Base64 -> Fichier Discord)
+        image_b64 = data.get("image_base64")
+        if not image_b64:
+            await interaction.followup.send("❌ Erreur : Le backend n'a pas renvoyé d'image.")
+            return
+
+        image_bytes = base64.b64decode(image_b64)
+        # On utilise io.BytesIO pour créer un fichier en mémoire
+        file = discord.File(io.BytesIO(image_bytes), filename="meta_shap.png")
+
+        # 2. Création de l'Embed
+        embed = discord.Embed(
+            title=f"🧠 Analyse Meta IA - {role.name}",
+            description=(
+                f"Voici ce que l'algorithme **XGBoost** détecte comme facteurs clés de victoire pour le rôle **{role.name}**.\n"
+                "Les points **rouges** à **droite** de la ligne centrale font gagner la partie."
+            ),
+            color=discord.Color.purple()
+        )
+
+        # On attache l'image à l'embed
+        embed.set_image(url="attachment://meta_shap.png")
+
+        # 3. Ajout des Conseils Tactiques
+        tips = data.get("tactical_tips", [])
+        if tips:
+            tips_text = ""
+            for tip in tips:
+                name = tip['name']
+                imp = tip['importance_score']
+                conseil = tip['tip']
+
+                # Formatage joli
+                tips_text += f"🔹 **{name}** (Impact: `{imp:.2f}`)\n   👉 *{conseil}*\n\n"
+
+            embed.add_field(name="💡 Conseils Tactiques",
+                            value=tips_text, inline=False)
+
+        embed.set_footer(
+            text="Généré par XGBoost + SHAP sur l'historique complet.")
+
+        # Envoi de la réponse avec le fichier
+        await interaction.followup.send(embed=embed, file=file)
+
+    except requests.exceptions.RequestException as e:
+        await interaction.followup.send(f"❌ Erreur de connexion au backend : {e}")
+    except Exception as e:
+        await interaction.followup.send(f"❌ Une erreur interne est survenue : {e}")
 
 
 # Run the bot
