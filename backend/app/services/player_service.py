@@ -15,7 +15,6 @@ class PlayerService:
 
         df = pd.DataFrame(history_data)
 
-        # --- FIX: Renommage position -> role ---
         if 'position' in df.columns:
             df.rename(columns={'position': 'role'}, inplace=True)
 

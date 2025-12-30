@@ -1,5 +1,5 @@
-import io
 import base64
+import io
 import json
 import os
 
@@ -247,105 +247,105 @@ async def stat(interaction: discord.Interaction, joueur: str):
             embed.add_field(name="🏆 Top Champions",
                             value="Aucun match joué", inline=True)
 
-        # 3. Séparateur pleine largeur
-        embed.add_field(name="\u200b", value="\u200b", inline=False)
+        # # 3. Séparateur pleine largeur
+        # embed.add_field(name="\u200b", value="\u200b", inline=False)
 
-        # 4. Section des moyennes (avec formatage amélioré)
-        role_stats = data.get('role_specific_avg_stats', {})
+        # # 4. Section des moyennes (avec formatage amélioré)
+        # role_stats = data.get('role_specific_avg_stats', {})
 
-        if role_stats:
-            stats_list = []
-            # Dictionnaire pour de plus jolis noms
-            pretty_names = {
-                "kda": "KDA", "kill_participation": "KP%", "cs_per_min": "CS/min",
-                "gold_per_min": "Gold/min", "damage_dealt_per_min": "Dégâts/min",
-                "vision_score_per_min": "Vision/min", "cc_score_per_min": "CC/min",
-                "healing_on_teammates_per_min": "Heal(Alliés)/min",
-                "shields_on_teammates_per_min": "Shield(Alliés)/min",
-                "effective_tanking_per_min": "Tanking/min"
-            }
+        # if role_stats:
+        #     stats_list = []
+        #     # Dictionnaire pour de plus jolis noms
+        #     pretty_names = {
+        #         "kda": "KDA", "kill_participation": "KP%", "cs_per_min": "CS/min",
+        #         "gold_per_min": "Gold/min", "damage_dealt_per_min": "Dégâts/min",
+        #         "vision_score_per_min": "Vision/min", "cc_score_per_min": "CC/min",
+        #         "healing_on_teammates_per_min": "Heal(Alliés)/min",
+        #         "shields_on_teammates_per_min": "Shield(Alliés)/min",
+        #         "effective_tanking_per_min": "Tanking/min"
+        #     }
 
-            for stat_name, stat_value in role_stats.items():
-                display_name = pretty_names.get(
-                    stat_name, stat_name.replace('_', ' ').title())
+        #     for stat_name, stat_value in role_stats.items():
+        #         display_name = pretty_names.get(
+        #             stat_name, stat_name.replace('_', ' ').title())
 
-                # 5. Formatage des chiffres (arrondis, %, etc.)
-                if "kda" in stat_name:
-                    value = f"{stat_value:.2f}"
-                elif "participation" in stat_name:
-                    value = f"{stat_value:.1f}%"
-                elif "damage_dealt" in stat_name or "tanking" in stat_name:
-                    # Pas de décimale pour les gros chiffres
-                    value = f"{stat_value:.0f}"
-                else:
-                    value = f"{stat_value:.1f}"  # 1 décimale pour le reste
+        #         # 5. Formatage des chiffres (arrondis, %, etc.)
+        #         if "kda" in stat_name:
+        #             value = f"{stat_value:.2f}"
+        #         elif "participation" in stat_name:
+        #             value = f"{stat_value:.1f}%"
+        #         elif "damage_dealt" in stat_name or "tanking" in stat_name:
+        #             # Pas de décimale pour les gros chiffres
+        #             value = f"{stat_value:.0f}"
+        #         else:
+        #             value = f"{stat_value:.1f}"  # 1 décimale pour le reste
 
-                stats_list.append(f"**{display_name}**: `{value}`")
+        #         stats_list.append(f"**{display_name}**: `{value}`")
 
-            if stats_list:
-                title = f"📊 Moyennes (Rôle: {data.get('main_role')})"
+        #     if stats_list:
+        #         title = f"📊 Moyennes (Rôle: {data.get('main_role')})"
 
-                # Divise en deux colonnes si + de 3 stats
-                if len(stats_list) > 3:
-                    mid_point = (len(stats_list) + 1) // 2
-                    col1 = "\n".join(stats_list[:mid_point])
-                    col2 = "\n".join(stats_list[mid_point:])
+        #         # Divise en deux colonnes si + de 3 stats
+        #         if len(stats_list) > 3:
+        #             mid_point = (len(stats_list) + 1) // 2
+        #             col1 = "\n".join(stats_list[:mid_point])
+        #             col2 = "\n".join(stats_list[mid_point:])
 
-                    embed.add_field(name=title, value=col1, inline=True)
-                    embed.add_field(name="\u200b", value=col2,
-                                    inline=True)  # Nom invisible
-                else:
-                    embed.add_field(name=title, value="\n".join(
-                        stats_list), inline=False)
+        #             embed.add_field(name=title, value=col1, inline=True)
+        #             embed.add_field(name="\u200b", value=col2,
+        #                             inline=True)  # Nom invisible
+        #         else:
+        #             embed.add_field(name=title, value="\n".join(
+        #                 stats_list), inline=False)
 
-        embed.add_field(name="\u200b", value="\u200b", inline=False)
+        # embed.add_field(name="\u200b", value="\u200b", inline=False)
 
-        secondary_role_stats = data.get('secondary_role_avg_stats', {})
+        # secondary_role_stats = data.get('secondary_role_avg_stats', {})
 
-        if secondary_role_stats:
-            stats_list = []
-            # Dictionnaire pour de plus jolis noms
-            pretty_names = {
-                "kda": "KDA", "kill_participation": "KP%", "cs_per_min": "CS/min",
-                "gold_per_min": "Gold/min", "damage_dealt_per_min": "Dégâts/min",
-                "vision_score_per_min": "Vision/min", "cc_score_per_min": "CC/min",
-                "healing_on_teammates_per_min": "Heal(Alliés)/min",
-                "shields_on_teammates_per_min": "Shield(Alliés)/min",
-                "effective_tanking_per_min": "Tanking/min"
-            }
+        # if secondary_role_stats:
+        #     stats_list = []
+        #     # Dictionnaire pour de plus jolis noms
+        #     pretty_names = {
+        #         "kda": "KDA", "kill_participation": "KP%", "cs_per_min": "CS/min",
+        #         "gold_per_min": "Gold/min", "damage_dealt_per_min": "Dégâts/min",
+        #         "vision_score_per_min": "Vision/min", "cc_score_per_min": "CC/min",
+        #         "healing_on_teammates_per_min": "Heal(Alliés)/min",
+        #         "shields_on_teammates_per_min": "Shield(Alliés)/min",
+        #         "effective_tanking_per_min": "Tanking/min"
+        #     }
 
-            for stat_name, stat_value in secondary_role_stats.items():
-                display_name = pretty_names.get(
-                    stat_name, stat_name.replace('_', ' ').title())
+        #     for stat_name, stat_value in secondary_role_stats.items():
+        #         display_name = pretty_names.get(
+        #             stat_name, stat_name.replace('_', ' ').title())
 
-                # 5. Formatage des chiffres (arrondis, %, etc.)
-                if "kda" in stat_name:
-                    value = f"{stat_value:.2f}"
-                elif "participation" in stat_name:
-                    value = f"{stat_value:.1f}%"
-                elif "damage_dealt" in stat_name or "tanking" in stat_name:
-                    # Pas de décimale pour les gros chiffres
-                    value = f"{stat_value:.0f}"
-                else:
-                    value = f"{stat_value:.1f}"  # 1 décimale pour le reste
+        #         # 5. Formatage des chiffres (arrondis, %, etc.)
+        #         if "kda" in stat_name:
+        #             value = f"{stat_value:.2f}"
+        #         elif "participation" in stat_name:
+        #             value = f"{stat_value:.1f}%"
+        #         elif "damage_dealt" in stat_name or "tanking" in stat_name:
+        #             # Pas de décimale pour les gros chiffres
+        #             value = f"{stat_value:.0f}"
+        #         else:
+        #             value = f"{stat_value:.1f}"  # 1 décimale pour le reste
 
-                stats_list.append(f"**{display_name}**: `{value}`")
+        #         stats_list.append(f"**{display_name}**: `{value}`")
 
-            if stats_list:
-                title = f"📊 Moyennes (Rôle Secondaire: {data.get('secondary_role')})"
+        #     if stats_list:
+        #         title = f"📊 Moyennes (Rôle Secondaire: {data.get('secondary_role')})"
 
-                # Divise en deux colonnes si + de 3 stats
-                if len(stats_list) > 3:
-                    mid_point = (len(stats_list) + 1) // 2
-                    col1 = "\n".join(stats_list[:mid_point])
-                    col2 = "\n".join(stats_list[mid_point:])
+        #         # Divise en deux colonnes si + de 3 stats
+        #         if len(stats_list) > 3:
+        #             mid_point = (len(stats_list) + 1) // 2
+        #             col1 = "\n".join(stats_list[:mid_point])
+        #             col2 = "\n".join(stats_list[mid_point:])
 
-                    embed.add_field(name=title, value=col1, inline=True)
-                    embed.add_field(name="\u200b", value=col2,
-                                    inline=True)  # Nom invisible
-                else:
-                    embed.add_field(name=title, value="\n".join(
-                        stats_list), inline=False)
+        #             embed.add_field(name=title, value=col1, inline=True)
+        #             embed.add_field(name="\u200b", value=col2,
+        #                             inline=True)  # Nom invisible
+        #         else:
+        #             embed.add_field(name=title, value="\n".join(
+        #                 stats_list), inline=False)
 
         embed.set_footer(
             text="Statistiques basées sur l'historique de toutes les parties PP.GG")
