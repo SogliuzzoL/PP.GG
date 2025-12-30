@@ -60,8 +60,7 @@ class XGBoostModel:
             n_estimators=100,
             max_depth=3,
             learning_rate=0.1,
-            eval_metric='logloss',
-            use_label_encoder=False
+            eval_metric='logloss'
         )
 
     def train(self, X, y):
