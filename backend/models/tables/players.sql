@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS players (
     player_id INTEGER PRIMARY KEY AUTOINCREMENT,
     puuid TEXT UNIQUE,
-    riot_id TEXT
+    riot_id TEXT,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

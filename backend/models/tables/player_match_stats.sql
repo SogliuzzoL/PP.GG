@@ -2,11 +2,11 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     stat_id INTEGER PRIMARY KEY AUTOINCREMENT,
     match_id INTEGER,
     player_id INTEGER,
-    champion TEXT,
-    team TEXT,
-    position TEXT,
-    winner BOOLEAN,
-    -- Ajout de toutes les stats brutes nécessaires pour les calculs futurs
+    champion_name TEXT,
+    team_side TEXT,
+    role TEXT,  -- RENOMMAGE ICI (ex-position)
+    is_winner BOOLEAN,
+    -- Stats brutes
     kills INTEGER,
     deaths INTEGER,
     assists INTEGER,

@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS performance_weights (
     features_json TEXT NOT NULL,
     weights_json TEXT NOT NULL,
     matrix_P BLOB NOT NULL,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
