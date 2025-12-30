@@ -1,4 +1,8 @@
+import math
+
 import numpy as np
+import pandas as pd
+import xgboost as xgb
 
 
 class RecursiveLeastSquares:
@@ -55,3 +59,55 @@ def calculate_z_scores(stats_list: list[float]) -> list[float]:
 
     z_scores = (stats_np - mean) / std
     return z_scores.tolist()
+
+
+class XGBoostScorer:
+    def __init__(self, role: str):
+        self.role = role
+        self.model = None
+
+    def train(self, X_df, y_series):
+        """
+        Entraîne un modèle léger sur l'historique pour capturer la 'méta' actuelle du rôle.
+        """
+        if len(X_df) < 5:  # Sécurité pour les débuts
+            return
+
+        self.model = xgb.XGBClassifier(
+            n_estimators=60,       # Suffisant pour une estimation
+            max_depth=3,           # Évite l'overfitting
+            learning_rate=0.05,    # Apprentissage doux
+            eval_metric='logloss',
+            use_label_encoder=False,
+            n_jobs=1               # Important pour ne pas bloquer ton serveur
+        )
+        self.model.fit(X_df, y_series)
+
+    def get_score(self, feature_vector_dict: dict) -> float:
+        """
+        Retourne un score normalisé (0-100) basé sur la probabilité de victoire ajoutée.
+        """
+        if self.model is None:
+            return 50.0  # Score neutre si pas de modèle
+
+        # 1. Conversion en DataFrame (1 ligne)
+        # L'ordre des colonnes doit correspondre à celui de l'entraînement (XGBoost gère ça via les noms)
+        input_df = pd.DataFrame([feature_vector_dict])
+
+        # 2. Prédiction de la "Marge" (Log-Odds)
+        # Valeur brute : -2.0 (très mauvais) à +2.0 (excellent), 0 = neutre
+        try:
+            raw_margin = self.model.predict(input_df, output_margin=True)[0]
+        except Exception as e:
+            print(f"Erreur XGBoost predict: {e}")
+            return 50.0
+
+        # 3. Transformation en Score "Lisible" (20-80)
+        # La Sigmoïde convertit la marge [-Inf, +Inf] en probabilité [0, 1]
+        # On centre sur 50.
+        # 0.8 "étale" un peu la notation
+        probability = 1 / (1 + math.exp(-0.8 * raw_margin))
+
+        # Mapping 20-80
+        score = 20 + 60 * probability
+        return score

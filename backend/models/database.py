@@ -1,9 +1,12 @@
 import json
+import os
 import sqlite3
 from collections import defaultdict
 
 import numpy as np
 import pandas as pd
+import requests
+from dotenv import dotenv_values
 from flask import jsonify
 from models.match import insert_match
 from models.performance_weights import get_weights_for_role, save_weights_for_role
@@ -18,8 +21,11 @@ from utils.feature_selector import recommend_features
 from utils.performance import (
     KalmanSkillFilter,
     RecursiveLeastSquares,
+    XGBoostScorer,
     calculate_z_scores,
 )
+
+config = dotenv_values(".env")
 
 
 def initialize_db(db_path: str):
@@ -45,6 +51,66 @@ def initialize_db(db_path: str):
     cursor.close()
     conn.commit()
     conn.close()
+
+
+def send_comparison_webhook(match_id, winner_side, players_data):
+    webhook_url = config["discord_webhook_url"]
+    if not webhook_url:
+        return
+
+    embeds = []
+
+    # Résumé du match
+    main_embed = {
+        "title": f"⚖️ Model Comparison - Match #{match_id}",
+        "description": f"**Winner:** {winner_side.upper()}",
+        # Vert ou Rouge (approximatif)
+        "color": 65280 if winner_side == "blue" else 16711680,
+        "fields": []
+    }
+
+    for p in players_data:
+        riot_id = p['riot_id']
+        role = p['position']
+        rls_score = p.get('normalized_score', 0)
+        xgb_score = p.get('beta_xgb_score', 0)
+        delta = xgb_score - rls_score
+
+        # Icône pour visualiser l'écart
+        icon = "➖"
+        if delta > 10:
+            icon = "📈"  # XGBoost valorise beaucoup plus
+        if delta < -10:
+            icon = "📉"  # XGBoost pénalise
+
+        # Stats clés pour comprendre la décision (Context)
+        stats = p['metrics']
+        context = (
+            f"KDA: {stats.get('kda', 0):.2f} | "
+            f"DPM: {int(stats.get('damage_dealt_per_min', 0))} | "
+            f"Vis/min: {stats.get('vision_score_per_min', 0):.2f} | "
+            f"KP: {stats.get('kill_participation', 0):.0f}%"
+        )
+
+        # Construction du champ
+        field_value = (
+            f"**RLS:** {rls_score:.1f}  |  **XGB:** {xgb_score:.1f}  |  **Δ:** {delta:+.1f} {icon}\n"
+            f"_{context}_"
+        )
+
+        main_embed["fields"].append({
+            "name": f"{role} - {riot_id} ({'WIN' if p['is_winner'] else 'LOSE'})",
+            "value": field_value,
+            "inline": False
+        })
+
+    embeds.append(main_embed)
+
+    # Envoi
+    try:
+        requests.post(webhook_url, json={"embeds": embeds})
+    except Exception as e:
+        print(f"Erreur envoi Discord: {e}")
 
 
 def get_active_features():
@@ -396,6 +462,55 @@ def add_match(db_path: str, data: dict):
             else:
                 p_data["normalized_score"] = 20 + 60 * \
                     (perf_raw - min_score) / (max_score - min_score)
+
+        try:
+            print("--- Démarrage Shadow Mode XGBoost ---")
+            # 1. Récupérer l'historique complet
+            historical_df = get_all_historical_data(conn)
+
+            # 2. Features larges pour XGBoost
+            xgb_features = [
+                "kda", "kill_participation", "cs_per_min", "gold_per_min",
+                "damage_dealt_per_min", "team_damage_percentage",
+                "vision_score_per_min", "vision_control_per_min",
+                "cc_score_per_min", "healing_on_teammates_per_min",
+                "shields_on_teammates_per_min", "effective_tanking_per_min",
+                # Tu peux ajouter ici 'kills_per_min' etc. si tu les as ajoutés à get_all_historical_data
+            ]
+            valid_xgb_features = [
+                f for f in xgb_features if f in historical_df.columns]
+
+            all_roles_in_game = set(p["position"] for p in all_players_data)
+
+            # 3. Entraînement et Prédiction
+            for role in all_roles_in_game:
+                # On entraîne sur TOUT sauf le match actuel (pour ne pas tricher)
+                history_minus_current = historical_df[
+                    (historical_df['role'] == role) &
+                    (historical_df['match_id'] != match_id)
+                ]
+
+                scorer = XGBoostScorer(role)
+                # On entraîne si on a au moins 10 games d'historique pour ce rôle
+                if len(history_minus_current) > 10:
+                    scorer.train(
+                        history_minus_current[valid_xgb_features], history_minus_current['win'])
+
+                # On note les joueurs de ce rôle
+                players_in_role = [
+                    p for p in all_players_data if p["position"] == role]
+                for p_data in players_in_role:
+                    feats = {k: p_data["metrics"].get(
+                        k, 0) for k in valid_xgb_features}
+                    # Stockage du score beta dans l'objet temporaire
+                    p_data["beta_xgb_score"] = scorer.get_score(feats)
+
+            # 4. Envoi du Webhook
+            print("Envoi du rapport Discord...")
+            send_comparison_webhook(match_id, winner, all_players_data)
+
+        except Exception as e:
+            print(f"⚠️ Erreur dans le Shadow Mode XGBoost: {e}")
 
         # Calcul du skill moyen de la partie
         avg_skill = 0.0
