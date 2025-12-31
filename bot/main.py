@@ -23,6 +23,56 @@ intents.message_content = True  # Required for message content access in some ca
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
+class AnalysisView(discord.ui.View):
+    def __init__(self, riot_id, role):
+        super().__init__(timeout=None)  # Timeout None pour que le bouton reste actif
+        self.riot_id = riot_id
+        self.role = role
+
+    @discord.ui.button(label="🧠 Analyse IA Détaillée", style=discord.ButtonStyle.blurple, emoji="📊")
+    async def analyze_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(thinking=True)
+
+        # Appel au backend (Attention : ça peut prendre 2-3 secondes)
+        try:
+            params = {'riot_id': self.riot_id, 'role': self.role}
+            response = requests.get(
+                f"{BACKEND_URL}/personal_meta", params=params)
+
+            if response.status_code != 200:
+                err = response.json().get('error', 'Erreur inconnue')
+                await interaction.followup.send(f"❌ {err}", ephemeral=True)
+                return
+
+            data = response.json()
+            image_b64 = data.get('image_base64')
+            tips = data.get('text_analysis', [])
+
+            # Décodage image
+            image_bytes = base64.b64decode(image_b64)
+            file = discord.File(io.BytesIO(image_bytes),
+                                filename="personal_shap.png")
+
+            embed = discord.Embed(
+                title=f"🧠 Pourquoi {self.riot_id} gagne (ou perd) ?",
+                description="Ce graphique montre l'impact précis de tes stats moyennes sur ta probabilité de victoire par rapport à la moyenne du serveur.",
+                color=discord.Color.purple()
+            )
+            embed.set_image(url="attachment://personal_shap.png")
+
+            if tips:
+                embed.add_field(name="📋 Conclusions",
+                                value="\n".join(tips), inline=False)
+
+            embed.set_footer(
+                text="Basé sur un modèle XGBoost personnalisé vs Base Value")
+
+            await interaction.followup.send(embed=embed, file=file)
+
+        except Exception as e:
+            await interaction.followup.send(f"Une erreur est survenue : {e}", ephemeral=True)
+
+
 class TopPlayersPaginator(discord.ui.View):
     def __init__(self, interaction: discord.Interaction, limit: int = 10):
         super().__init__(timeout=180)
@@ -350,7 +400,18 @@ async def stat(interaction: discord.Interaction, joueur: str):
         embed.set_footer(
             text="Statistiques basées sur l'historique de toutes les parties PP.GG")
 
-        await interaction.followup.send(embed=embed)
+        # 1. Déterminer le rôle principal pour le bouton
+        main_role = data.get('main_role', 'UNKNOWN')
+
+        # 2. Créer la vue si le rôle est valide
+        view = None
+        if main_role and main_role != 'Inconnu':
+            # Mapping des rôles si nécessaire, ou on passe direct si le backend gère "JUNGLE" etc.
+            view = AnalysisView(riot_id=data.get(
+                'riot_id', joueur), role=main_role)
+
+        # 3. Envoyer avec la view
+        await interaction.followup.send(embed=embed, view=view)
 
     except requests.exceptions.RequestException as e:
         await interaction.followup.send(f"Erreur lors de la connexion au backend : {e}")

@@ -170,13 +170,7 @@ class AnalyticsService:
         if df.empty or len(df) < 20:
             return players_data
 
-        shadow_features = [
-            "kda", "kill_participation", "cs_per_min", "gold_per_min",
-            "damage_dealt_per_min", "team_damage_percentage",
-            "vision_score_per_min", "vision_control_per_min",
-            "cc_score_per_min", "healing_on_teammates_per_min",
-            "shields_on_teammates_per_min", "effective_tanking_per_min"
-        ]
+        shadow_features = self.readable_names.keys()
         valid_features = [f for f in shadow_features if f in df.columns]
 
         roles_in_game = set(p['role'] for p in players_data)
@@ -231,3 +225,95 @@ class AnalyticsService:
                 print(f"   ❌ Erreur Shadow XGBoost pour {role}: {e}")
 
         return players_data
+
+    def get_personal_shap_analysis(self, riot_id: str, role: str):
+        """
+        Génère un graphique SHAP Waterfall personnalisé.
+        Compare les stats moyennes du joueur à la "base value" du modèle.
+        """
+        role = role.upper()
+        df = self.match_repo.get_historical_data_dataframe()
+
+        if df.empty:
+            return {"error": "Pas de données historiques."}
+
+        # 1. Récupérer les données globales pour l'entraînement
+        role_df = df[df['role'] == role]
+        if len(role_df) < 20:
+            return {"error": f"Pas assez de données globales pour le rôle {role} (min 20)."}
+
+        # 2. Récupérer les données du joueur
+        # On suppose que 'riot_id' est présent ou qu'on filtre par player_id.
+        # Si riot_id n'est pas dans le DF, il faut le récupérer via le repo.
+        # Ici, on assume que le DF contient une colonne identifiant le joueur (ex: 'riot_id' ou 'name')
+        # Si ce n'est pas le cas, adaptez le filtre ci-dessous.
+        player_games = role_df[role_df['riot_id'] == riot_id]
+
+        if len(player_games) < 3:
+            return {"error": f"Tu dois jouer au moins 3 parties en {role} pour avoir une analyse perso."}
+
+        # 3. Préparation des Features
+        features = self.readable_names.keys()
+        # Filtrer celles qui existent vraiment
+        valid_features = [f for f in features if f in role_df.columns]
+
+        X = role_df[valid_features]
+        y = role_df['win']  # Assurez-vous que 'win' est 0 ou 1
+
+        try:
+            # 4. Entraînement du modèle (Méta Globale)
+            model = xgb.XGBClassifier(
+                eval_metric='logloss', use_label_encoder=False, max_depth=3)
+            model.fit(X, y)
+
+            # 5. Création du Vecteur Joueur (Moyenne de ses stats)
+            player_avg = player_games[valid_features].mean(
+            ).to_frame().T  # DataFrame 1 ligne
+
+            # 6. Analyse SHAP Spécifique
+            explainer = shap.Explainer(model, X)
+            shap_values = explainer(player_avg)
+
+            # 7. Génération du Waterfall Plot
+            # Le waterfall montre : Base Value + Impact KDA + Impact CSM ... = Score Joueur
+            plt.figure(figsize=(12, 6))
+
+            # On renomme les colonnes pour l'affichage
+            display_names = [self.readable_names.get(
+                c, c) for c in valid_features]
+            shap_values.feature_names = display_names
+
+            # Création du plot
+            shap.plots.waterfall(shap_values[0], max_display=10, show=False)
+
+            # Sauvegarde
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+            plt.close()
+            buf.seek(0)
+            image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+            # Analyse textuelle simple pour accompagner
+            # On regarde les 3 impacts les plus forts (positifs ou négatifs)
+            values = shap_values.values[0]
+            top_indices = np.argsort(np.abs(values))[::-1][:3]
+
+            analysis_text = []
+            for idx in top_indices:
+                val = values[idx]
+                feat_name = display_names[idx]
+                if val > 0:
+                    analysis_text.append(
+                        f"✅ Ton **{feat_name}** augmente tes chances de gagner.")
+                else:
+                    analysis_text.append(
+                        f"⚠️ Ton **{feat_name}** pénalise ton taux de victoire.")
+
+            return {
+                "image_base64": image_base64,
+                "text_analysis": analysis_text
+            }
+
+        except Exception as e:
+            print(f"Erreur Personal SHAP: {e}")
+            return {"error": f"Erreur lors de l'analyse : {e}"}

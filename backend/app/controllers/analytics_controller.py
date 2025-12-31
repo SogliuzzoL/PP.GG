@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, send_file
+from flask import Blueprint, jsonify, request, send_file
 
 from backend.app.services.analytics_service import AnalyticsService
 
@@ -23,3 +23,19 @@ def get_matrix(role):
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Internal Error: {e}"}), 500
+
+
+@analytics_bp.route('/personal_meta', methods=['GET'])
+def personal_meta():
+    riot_id = request.args.get('riot_id')
+    role = request.args.get('role')
+
+    if not riot_id or not role:
+        return jsonify({"error": "Paramètres manquants"}), 400
+
+    result = AnalyticsService.get_personal_shap_analysis(riot_id, role)
+
+    if "error" in result:
+        return jsonify(result), 400
+
+    return jsonify(result), 200
