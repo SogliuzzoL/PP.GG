@@ -39,13 +39,7 @@ class AnalyticsService:
             return {"error": f"Pas assez de données pour {role} (min 5 parties)."}
 
         # Sélection des features disponibles
-        features_candidates = [
-            "kda", "kill_participation", "cs_per_min", "gold_per_min",
-            "damage_dealt_per_min", "team_damage_percentage", "vision_score_per_min",
-            "vision_control_per_min", "cc_score_per_min", "healing_on_teammates_per_min",
-            "shields_on_teammates_per_min", "effective_tanking_per_min",
-            "kills_per_min", "deaths_per_min", "assists_per_min"
-        ]
+        features_candidates = self.readable_names.keys()
 
         # On ne garde que les colonnes qui existent vraiment dans le DF
         valid_features = [
