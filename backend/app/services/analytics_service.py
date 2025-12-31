@@ -294,9 +294,9 @@ class AnalyticsService:
             image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
 
             # Analyse textuelle simple pour accompagner
-            # On regarde les 3 impacts les plus forts (positifs ou négatifs)
+            # On regarde les 5 impacts les plus forts (positifs ou négatifs)
             values = shap_values.values[0]
-            top_indices = np.argsort(np.abs(values))[::-1][:3]
+            top_indices = np.argsort(np.abs(values))[::-1][:5]
 
             analysis_text = []
             for idx in top_indices:
