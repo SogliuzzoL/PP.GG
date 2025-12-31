@@ -44,9 +44,10 @@ class MatchRepository:
         """Récupère tout l'historique, calcule les métriques /min et nettoie les brutes."""
         conn = get_db_connection()
         query = """
-        SELECT pms.*, m.game_duration
+        SELECT pms.*, m.game_duration, p.riot_id
         FROM player_match_stats pms
         JOIN matches m ON pms.match_id = m.match_id
+        JOIN players p ON pms.player_id = p.player_id
         """
         try:
             df = pd.read_sql_query(query, conn)
