@@ -33,7 +33,7 @@ def personal_meta():
     if not riot_id or not role:
         return jsonify({"error": "Paramètres manquants"}), 400
 
-    result = AnalyticsService.get_personal_shap_analysis(riot_id, role)
+    result = service.get_personal_shap_analysis(riot_id, role)
 
     if "error" in result:
         return jsonify(result), 400
