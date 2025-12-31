@@ -25,7 +25,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 class AnalysisView(discord.ui.View):
     def __init__(self, riot_id, role):
-        super().__init__(timeout=None)  # Timeout None pour que le bouton reste actif
+        super().__init__(timeout=None)
         self.riot_id = riot_id
         self.role = role
 
@@ -33,8 +33,8 @@ class AnalysisView(discord.ui.View):
     async def analyze_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(thinking=True)
 
-        # Appel au backend (Attention : ça peut prendre 2-3 secondes)
         try:
+            # Appel au backend (même route que /analyse)
             params = {'riot_id': self.riot_id, 'role': self.role}
             response = requests.get(
                 f"{BACKEND_URL}/personal_meta", params=params)
@@ -48,29 +48,42 @@ class AnalysisView(discord.ui.View):
             image_b64 = data.get('image_base64')
             tips = data.get('text_analysis', [])
 
+            if not image_b64:
+                await interaction.followup.send("❌ Erreur : Pas d'image reçue.", ephemeral=True)
+                return
+
             # Décodage image
             image_bytes = base64.b64decode(image_b64)
             file = discord.File(io.BytesIO(image_bytes),
-                                filename="personal_shap.png")
+                                filename="analysis_shap.png")
 
+            # --- UNIFORMISATION : MÊME STYLE QUE /ANALYSE ---
             embed = discord.Embed(
-                title=f"🧠 Pourquoi {self.riot_id} gagne (ou perd) ?",
-                description="Ce graphique montre l'impact précis de tes stats moyennes sur ta probabilité de victoire par rapport à la moyenne du serveur.",
-                color=discord.Color.purple()
+                title=f"🧠 Analyse IA - {self.riot_id} ({self.role})",
+                description=(
+                    "Ce graphique compare tes performances à l'**Optimal Théorique** calculé par l'IA.\n"
+                    "• **Rouge** 🟥 : Stats qui augmentent tes chances de victoire.\n"
+                    "• **Bleu** 🟦 : Stats qui te tirent vers le bas."
+                ),
+                color=discord.Color.brand_green()  # Uniformisation de la couleur
             )
-            embed.set_image(url="attachment://personal_shap.png")
+
+            embed.set_image(url="attachment://analysis_shap.png")
 
             if tips:
-                embed.add_field(name="📋 Conclusions",
-                                value="\n".join(tips), inline=False)
+                tips_formatted = "\n\n".join(tips)
+                embed.add_field(name="💡 Conclusions de l'IA",
+                                value=tips_formatted, inline=False)
 
             embed.set_footer(
-                text="Basé sur un modèle XGBoost personnalisé vs Base Value")
+                text="Généré via XGBoost + SHAP (Méthode Scientifique)")
 
             await interaction.followup.send(embed=embed, file=file)
 
+        except requests.exceptions.RequestException as e:
+            await interaction.followup.send(f"❌ Erreur connexion backend: {e}", ephemeral=True)
         except Exception as e:
-            await interaction.followup.send(f"Une erreur est survenue : {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Erreur: {e}", ephemeral=True)
 
 
 class TopPlayersPaginator(discord.ui.View):
