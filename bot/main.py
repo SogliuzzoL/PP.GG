@@ -496,6 +496,82 @@ async def meta(interaction: discord.Interaction, role: app_commands.Choice[str])
         await interaction.followup.send(f"❌ Une erreur interne est survenue : {e}")
 
 
+@bot.tree.command(name="analyse", description="Analyse IA détaillée : Pourquoi tu gagnes (ou perds) ?")
+@app_commands.describe(
+    joueur="Le Riot ID complet (ex: MonPseudo#EUW)",
+    role="Le rôle joué (Top, Jungle, Mid, ADC, Support)"
+)
+@app_commands.choices(role=[
+    app_commands.Choice(name="Toplane", value="TOP"),
+    app_commands.Choice(name="Jungle", value="JUNGLE"),
+    app_commands.Choice(name="Midlane", value="MIDDLE"),
+    app_commands.Choice(name="ADC (Bot)", value="BOTTOM"),
+    app_commands.Choice(name="Support", value="UTILITY"),
+])
+async def analyse(interaction: discord.Interaction, joueur: str, role: app_commands.Choice[str]):
+    """Demande une analyse SHAP personnalisée au backend."""
+    await interaction.response.defer(thinking=True)
+
+    selected_role = role.value
+
+    # Validation basique du Riot ID (doit contenir #)
+    if '#' not in joueur:
+        await interaction.followup.send("❌ Format invalide. Le Riot ID doit contenir le tag (ex: `Pseudo#EUW`).")
+        return
+
+    try:
+        # Appel à la route backend /personal_meta
+        params = {'riot_id': joueur, 'role': selected_role}
+        response = requests.get(f"{BACKEND_URL}/personal_meta", params=params)
+
+        # Gestion des erreurs HTTP (400, 404, 500)
+        if response.status_code != 200:
+            error_msg = response.json().get("error", "Erreur inconnue du serveur.")
+            await interaction.followup.send(f"⚠️ **Impossible de générer l'analyse** : {error_msg}")
+            return
+
+        data = response.json()
+        image_b64 = data.get("image_base64")
+        tips = data.get("text_analysis", [])
+
+        if not image_b64:
+            await interaction.followup.send("❌ Erreur : Le backend n'a pas renvoyé d'image.")
+            return
+
+        # Décodage de l'image
+        image_bytes = base64.b64decode(image_b64)
+        file = discord.File(io.BytesIO(image_bytes),
+                            filename="analysis_shap.png")
+
+        # Création de l'Embed
+        embed = discord.Embed(
+            title=f"🧠 Analyse IA - {joueur} ({role.name})",
+            description=(
+                "Ce graphique compare tes performances à l'**Optimal Théorique** calculé par l'IA.\n"
+                "• **Rouge** 🟥 : Stats qui augmentent tes chances de victoire.\n"
+                "• **Bleu** 🟦 : Stats qui te tirent vers le bas."
+            ),
+            color=discord.Color.brand_green()
+        )
+
+        embed.set_image(url="attachment://analysis_shap.png")
+
+        # Ajout des conseils textuels
+        if tips:
+            tips_formatted = "\n\n".join(tips)
+            embed.add_field(name="💡 Conclusions de l'IA",
+                            value=tips_formatted, inline=False)
+
+        embed.set_footer(
+            text="Généré via XGBoost + SHAP (Méthode Scientifique)")
+
+        await interaction.followup.send(embed=embed, file=file)
+
+    except requests.exceptions.RequestException as e:
+        await interaction.followup.send(f"❌ Erreur de connexion au backend : {e}")
+    except Exception as e:
+        await interaction.followup.send(f"❌ Une erreur interne est survenue : {e}")
+
 # Run the bot
 if __name__ == "__main__":
     if TOKEN:
