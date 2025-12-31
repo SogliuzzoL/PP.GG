@@ -251,63 +251,128 @@ class AnalyticsService:
         # Filtrer celles qui existent vraiment
         valid_features = [f for f in features if f in role_df.columns]
 
+        # 1. Préparation X et y
         X = role_df[valid_features]
-        y = role_df['win']  # Assurez-vous que 'win' est 0 ou 1
+        y = role_df['win']
+
+        # Pour l'affichage "Avg", on garde la moyenne classique
+        server_avg = X.mean()
 
         try:
-            # 4. Entraînement du modèle (Méta Globale)
+            # 2. Entraînement du modèle
             model = xgb.XGBClassifier(
-                eval_metric='logloss', use_label_encoder=False, max_depth=3)
+                eval_metric='logloss', max_depth=3)
             model.fit(X, y)
+            optimal_map = self._compute_ml_optimal(model, X, valid_features)
 
-            # 5. Création du Vecteur Joueur (Moyenne de ses stats)
-            player_avg = player_games[valid_features].mean(
-            ).to_frame().T  # DataFrame 1 ligne
-
-            # 6. Analyse SHAP Spécifique
+            # 3. Calcul SHAP classique
+            player_avg = player_games[valid_features].mean().to_frame().T
             explainer = shap.Explainer(model, X)
             shap_values = explainer(player_avg)
 
-            # 7. Génération du Waterfall Plot
-            # Le waterfall montre : Base Value + Impact KDA + Impact CSM ... = Score Joueur
-            plt.figure(figsize=(12, 6))
+            # 4. Création des Labels dynamiques
+            new_labels = []
+            for feat in valid_features:
+                base_name = self.readable_names.get(feat, feat)
 
-            # On renomme les colonnes pour l'affichage
-            display_names = [self.readable_names.get(
-                c, c) for c in valid_features]
-            shap_values.feature_names = display_names
+                s_avg = server_avg[feat]
+                # On récupère l'optimal calculé par l'IA
+                o_avg = optimal_map.get(feat, 0)
 
-            # Création du plot
+                # Formatage (entier ou décimal)
+                if feat in ["damage_dealt_per_min", "gold_per_min", "effective_tanking_per_min"]:
+                    fmt = "{:.0f}"
+                else:
+                    fmt = "{:.1f}"
+
+                label = f"{base_name}\nAvg:{fmt.format(s_avg)} | Opt:{fmt.format(o_avg)}"
+                new_labels.append(label)
+
+            shap_values.feature_names = new_labels
+
+            # 5. Génération du graph (Waterfall)
+            plt.figure(figsize=(14, 8))
             shap.plots.waterfall(shap_values[0], max_display=10, show=False)
+            plt.title(
+                f"Analyse IA : {riot_id} ({role}) vs Optimal théorique", fontsize=14)
 
-            # Sauvegarde
             buf = io.BytesIO()
             plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
             plt.close()
             buf.seek(0)
             image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
 
-            # Analyse textuelle simple pour accompagner
-            # On regarde les 5 impacts les plus forts (positifs ou négatifs)
-            values = shap_values.values[0]
-            top_indices = np.argsort(np.abs(values))[::-1][:5]
+            # 6. Texte d'analyse
+            vals = shap_values.values[0]
+            top_indices = np.argsort(np.abs(vals))[::-1][:3]
+            original_names = [self.readable_names.get(
+                f, f) for f in valid_features]
 
-            analysis_text = []
+            tips = []
             for idx in top_indices:
-                val = values[idx]
-                feat_name = display_names[idx]
+                val = vals[idx]
+                # La clé interne (ex: cs_per_min)
+                feat_key = valid_features[idx]
+                name = original_names[idx]     # Le nom joli (ex: CS/min)
+
+                p_val = player_avg.iloc[0, idx]
+                o_val = optimal_map.get(feat_key, 0)
+
+                # Comparaison Joueur vs Optimal IA
                 if val > 0:
-                    analysis_text.append(
-                        f"✅ Ton **{feat_name}** augmente tes chances de gagner.")
+                    tips.append(
+                        f"✅ **{name}** : Ta moyenne est de `{p_val:.1f}`. L'IA considère que `{o_val:.1f}` est parfait, tu t'en rapproches bien !")
                 else:
-                    analysis_text.append(
-                        f"⚠️ Ton **{feat_name}** pénalise ton taux de victoire.")
+                    diff = o_val - p_val
+                    tips.append(
+                        f"⚠️ **{name}** : Tu es à `{p_val:.1f}`. Pour maximiser tes chances, l'IA suggère de viser `{o_val:.1f}` (Manque: `{diff:+.1f}`).")
 
             return {
                 "image_base64": image_base64,
-                "text_analysis": analysis_text
+                "text_analysis": tips
             }
 
         except Exception as e:
-            print(f"Erreur Personal SHAP: {e}")
-            return {"error": f"Erreur lors de l'analyse : {e}"}
+            print(f"Erreur: {e}")
+            return {"error": f"Erreur interne : {e}"}
+
+    def _compute_ml_optimal(self, model, X, features):
+        """
+        Méthode 3 : Trouve la valeur optimale pour chaque feature en maximisant 
+        la probabilité de victoire prédite par le modèle (analyse Ceteris Paribus).
+        """
+        optimal_stats = {}
+        # 1. On part d'un joueur "moyen" (toutes les stats à la moyenne du serveur)
+        base_vector = X.mean().to_frame().T
+
+        for feat in features:
+            try:
+                # 2. On définit une plage de recherche réaliste (du Min au Top 1%)
+                # On évite le max absolu pour ne pas viser des outliers impossibles
+                min_val = X[feat].min()
+                max_val = X[feat].quantile(0.99)
+
+                if min_val == max_val:
+                    optimal_stats[feat] = max_val
+                    continue
+
+                # 3. On teste 50 valeurs différentes entre le min et le max
+                test_values = np.linspace(min_val, max_val, 50)
+
+                # 4. On crée un tableau où seule cette feature change
+                batch = pd.concat([base_vector] * 50, ignore_index=True)
+                batch[feat] = test_values
+
+                # 5. On demande au modèle : "Quelle est la probabilité de victoire pour chaque valeur ?"
+                # predict_proba renvoie [Prob_Defaite, Prob_Victoire] -> on prend l'index 1
+                probas = model.predict_proba(batch)[:, 1]
+
+                # 6. On garde la valeur qui donne le % de victoire le plus haut
+                best_idx = np.argmax(probas)
+                optimal_stats[feat] = test_values[best_idx]
+
+            except Exception as e:
+                print(f"⚠️ Erreur calcul optimal ML pour {feat}: {e}")
+                optimal_stats[feat] = X[feat].mean()  # Fallback sur la moyenne
+
+        return optimal_stats
