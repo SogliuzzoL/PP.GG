@@ -17,7 +17,6 @@ class MachineLearningService:
             "max_depth": 3,           # Assez faible pour éviter l'overfitting sur peu de données
             "learning_rate": 0.05,
             "subsample": 0.8,         # Robustesse
-            "use_label_encoder": False,
             "eval_metric": "logloss"
         }
 
