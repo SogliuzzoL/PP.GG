@@ -376,3 +376,105 @@ class AnalyticsService:
                 optimal_stats[feat] = X[feat].mean()  # Fallback sur la moyenne
 
         return optimal_stats
+
+    def analyze_specific_match(self, match_id, riot_id):
+        """
+        Analyse une partie spécifique pour un joueur donné.
+        Génère un graphique Waterfall montrant pourquoi le modèle a donné ce score/cette prédiction.
+        """
+        df = self.match_repo.get_historical_data_dataframe()
+
+        if df.empty:
+            return {"error": "Aucune donnée disponible."}
+
+        # 1. Retrouver la ligne spécifique du match
+        # Assurez-vous que les types correspondent (int/str) selon votre BDD
+        try:
+            match_id_int = int(match_id)
+            match_row = df[(df['match_id'] == match_id_int)
+                           & (df['riot_id'] == riot_id)]
+        except ValueError:
+            return {"error": "ID de match invalide."}
+
+        if match_row.empty:
+            return {"error": f"Match {match_id} introuvable pour {riot_id}."}
+
+        # On récupère les infos contextuelles
+        target_game = match_row.iloc[0]
+        role = target_game['role']
+        win = target_game['win'] == 1
+
+        # 2. Préparer les données d'entraînement (Tout le monde sur ce rôle)
+        role_df = df[df['role'] == role]
+        if len(role_df) < 10:
+            return {"error": "Pas assez de données globales pour analyser ce rôle."}
+
+        features = self.readable_names.keys()
+        valid_features = [f for f in features if f in role_df.columns]
+
+        X = role_df[valid_features]
+        y = role_df['win']
+
+        # La ligne de données du joueur pour ce match précis
+        X_target = match_row[valid_features]
+
+        try:
+            # 3. Entraînement rapide du modèle explicatif
+            model = xgb.XGBClassifier(
+                use_label_encoder=False, eval_metric='logloss', max_depth=3)
+            model.fit(X, y)
+
+            # 4. Calcul SHAP pour cette instance unique
+            explainer = shap.Explainer(model, X)
+            shap_values = explainer(X_target)
+
+            # --- Génération Graphique Waterfall ---
+            plt.figure(figsize=(10, 6))
+
+            # On renforce les noms des features pour l'affichage
+            new_names = [self.readable_names.get(n, n) for n in valid_features]
+            shap_values.feature_names = new_names
+
+            # On affiche la première (et unique) instance
+            shap.plots.waterfall(shap_values[0], max_display=8, show=False)
+
+            title = f"Impact Stats: {riot_id} ({'Victoire' if win else 'Défaite'})"
+            plt.title(title, fontsize=14)
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+            plt.close()
+            buf.seek(0)
+            image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+            # --- Analyse textuelle des facteurs clés ---
+            # On trie les valeurs SHAP par impact absolu
+            vals = shap_values.values[0]
+            indices = np.argsort(np.abs(vals))[::-1]  # Descending sort
+
+            key_factors = []
+            for i in indices[:3]:  # Top 3 facteurs
+                feat_key = valid_features[i]
+                feat_name = self.readable_names.get(feat_key, feat_key)
+                impact = vals[i]
+                player_val = X_target.iloc[0][feat_key]
+
+                # Interprétation simple
+                if impact > 0:
+                    desc = f"👍 **{feat_name}** ({player_val:.1f}) a grandement aidé."
+                else:
+                    desc = f"👎 **{feat_name}** ({player_val:.1f}) a pénalisé la perf."
+
+                key_factors.append(desc)
+
+            return {
+                "match_id": match_id,
+                "riot_id": riot_id,
+                "role": role,
+                "analysis_image": image_base64,
+                "key_factors": key_factors
+            }
+
+        except Exception as e:
+            print(f"Erreur analyse match: {e}")
+            return {"error": "Impossible de générer l'analyse détaillée."}

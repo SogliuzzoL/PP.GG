@@ -585,6 +585,82 @@ async def analyse(interaction: discord.Interaction, joueur: str, role: app_comma
     except Exception as e:
         await interaction.followup.send(f"❌ Une erreur interne est survenue : {e}")
 
+
+@bot.tree.command(name="match", description="Analyse détaillée d'une partie spécifique : Quels facteurs ont décidé du sort ?")
+@app_commands.describe(
+    match_id="L'identifiant unique de la partie (ID)",
+    joueur="Le Riot ID du joueur (ex: Pseudo#EUW)"
+)
+async def match(interaction: discord.Interaction, match_id: str, joueur: str):
+    """Demande une analyse SHAP pour un match précis."""
+    await interaction.response.defer(thinking=True)
+
+    # Validation basique
+    if '#' not in joueur:
+        await interaction.followup.send("❌ Format invalide. Le Riot ID doit contenir le tag (ex: `Pseudo#EUW`).", ephemeral=True)
+        return
+
+    try:
+        # Appel au backend
+        params = {'riot_id': joueur}
+        url = f"{BACKEND_URL}/match_analysis/{match_id}"
+
+        response = requests.get(url, params=params)
+
+        if response.status_code != 200:
+            error_msg = response.json().get("error", "Match introuvable ou erreur serveur.")
+            await interaction.followup.send(f"⚠️ **Erreur** : {error_msg}")
+            return
+
+        data = response.json()
+
+        # Extraction des données
+        image_b64 = data.get("analysis_image")
+        factors = data.get("key_factors", [])
+        role = data.get("role", "UNKNOWN")
+
+        if not image_b64:
+            await interaction.followup.send("❌ Erreur : Pas d'image d'analyse reçue.")
+            return
+
+        # Décodage de l'image
+        image_bytes = base64.b64decode(image_b64)
+        file = discord.File(io.BytesIO(image_bytes), filename="match_shap.png")
+
+        # Création de l'Embed
+        embed = discord.Embed(
+            title=f"🔎 Analyse de Match #{match_id}",
+            description=f"Analyse d'impact pour **{joueur}** ({role}) sur cette partie précise.",
+            color=discord.Color.orange()
+        )
+
+        embed.set_image(url="attachment://match_shap.png")
+
+        # Ajout des facteurs clés (Pourquoi j'ai gagné/perdu ?)
+        if factors:
+            factors_text = "\n".join(factors)
+            embed.add_field(
+                name="🗝️ Facteurs déterminants",
+                value=factors_text,
+                inline=False
+            )
+        else:
+            embed.add_field(
+                name="🗝️ Facteurs déterminants",
+                value="Rien de significatif détecté.",
+                inline=False
+            )
+
+        embed.set_footer(
+            text="PP.GG • Analyse 'Waterfall' (Contribution exacte par stat)")
+
+        await interaction.followup.send(embed=embed, file=file)
+
+    except requests.exceptions.RequestException as e:
+        await interaction.followup.send(f"❌ Erreur de connexion au backend : {e}")
+    except Exception as e:
+        await interaction.followup.send(f"❌ Erreur interne : {e}")
+
 # Run the bot
 if __name__ == "__main__":
     if TOKEN:

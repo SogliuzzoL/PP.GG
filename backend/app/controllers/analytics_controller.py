@@ -39,3 +39,19 @@ def personal_meta():
         return jsonify(result), 400
 
     return jsonify(result), 200
+
+
+@analytics_bp.route('/match_analysis/<match_id>', methods=['GET'])
+def match_analysis(match_id):
+    riot_id = request.args.get('riot_id')
+    if not riot_id:
+        return jsonify({"error": "Riot ID manquant"}), 400
+
+    try:
+        # On passe le match_id et le riot_id au service
+        result = service.analyze_specific_match(match_id, riot_id)
+        if "error" in result:
+            return jsonify(result), 400
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Erreur interne: {str(e)}"}), 500
