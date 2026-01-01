@@ -219,8 +219,8 @@ class AnalyticsService:
 
         # 2. Données du joueur
         player_games = role_df[role_df['riot_id'] == riot_id]
-        if len(player_games) < 3:
-            return {"error": f"Tu dois jouer au moins 3 parties en {role} pour avoir une analyse perso."}
+        if len(player_games) < 1:
+            return {"error": f"Tu dois jouer au moins une partie en {role} pour avoir une analyse perso."}
 
         # 3. Préparation Features
         valid_features = model.get_booster().feature_names
