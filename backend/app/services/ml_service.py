@@ -3,7 +3,6 @@ import xgboost as xgb
 
 from backend.app.repositories.match_repository import MatchRepository
 from backend.app.repositories.model_repository import ModelRepository
-from backend.app.utils.feature_selector import recommend_features
 
 
 class MachineLearningService:
@@ -52,14 +51,11 @@ class MachineLearningService:
             print(f"⚠️ Pas assez de données pour entraîner {role}")
             return None
 
-        # Sélection des features (tu peux réutiliser ton logic intelligent ou une liste fixe)
-        # Pour l'uniformisation, je suggère de prendre toutes les colonnes numériques pertinentes
-        # ou d'utiliser ta fonction 'recommend_features' ici.
         features = [col for col in self.feature_names_map.keys()
                     if col in role_df.columns]
 
         X = role_df[features]
-        y = role_df['win']  # Assure-toi que c'est 0/1
+        y = role_df['win']
 
         if y.nunique() < 2:
             return None

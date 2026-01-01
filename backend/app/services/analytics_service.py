@@ -257,7 +257,9 @@ class AnalyticsService:
 
             # 7. Génération du graph
             plt.figure(figsize=(14, 8))
-            shap.plots.waterfall(shap_values[0], max_display=10, show=False)
+            shap.plots.waterfall(shap_values[0],
+                                 max_display=len(self.readable_names),
+                                 show=False)
             plt.title(
                 f"Analyse IA : {riot_id} ({role}) vs Optimal théorique", fontsize=14)
 
