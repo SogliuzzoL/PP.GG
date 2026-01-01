@@ -17,7 +17,6 @@ class MatchService:
         self.analytics_service = AnalyticsService()
 
     def process_match(self, match_data):
-        # ... Extraction données (identique) ...
         duration = match_data.get("gameLength", 1) / 60.0
         teams = match_data["teams"]
         is_blue_winner = (teams[0]["isBottomTeam"] and teams[0]["isWinningTeam"]) or \
@@ -41,7 +40,6 @@ class MatchService:
                              for p in team["players"])
 
             for p_raw in team["players"]:
-                # ... Gestion Identité (identique) ...
                 puuid = p_raw["puuid"]
                 riot_id = f"{p_raw['riotIdGameName']}#{p_raw['riotIdTagLine']}"
                 pid = self.player_repo.get_player_id(puuid)
@@ -78,7 +76,6 @@ class MatchService:
                     "effective_tanking_per_min": (stats.get("TOTAL_DAMAGE_SELF_MITIGATED", 0) + (stats.get("TOTAL_HEAL", 0) - stats.get("TOTAL_HEAL_ON_TEAMMATES", 0))) / duration,
                 }
 
-                # ... DB Stats (identique) ...
                 db_stats = {
                     "champion_name": p_raw.get("championName"),
                     "team_side": team_side_code,
