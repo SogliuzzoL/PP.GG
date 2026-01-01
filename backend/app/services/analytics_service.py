@@ -436,7 +436,8 @@ class AnalyticsService:
             shap_values.feature_names = new_names
 
             # On affiche la première (et unique) instance
-            shap.plots.waterfall(shap_values[0], max_display=8, show=False)
+            shap.plots.waterfall(
+                shap_values[0], max_display=len(new_names), show=False)
 
             title = f"Impact Stats: {riot_id} ({'Victoire' if win else 'Défaite'})"
             plt.title(title, fontsize=14)
