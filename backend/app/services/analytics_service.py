@@ -46,16 +46,11 @@ class AnalyticsService:
             return {"error": f"Pas assez de données pour l'analyse SHAP de {role}."}
 
         # 3. Alignement des features
-        # On ne garde que les colonnes que le modèle connaît
         model_features = model.get_booster().feature_names
-        # Sécurité : on vérifie qu'on a bien toutes les colonnes dans le DF
         available_features = [
             f for f in model_features if f in role_df.columns]
 
         if len(available_features) != len(model_features):
-            # Si des colonnes manquent dans le DF (ex: nouvelles stats), on peut soit crash, soit remplir par 0
-            # Ici on filtre le DF, mais le modèle risque de râler s'il manque des inputs.
-            # Idéalement, get_historical_data_dataframe retourne tout.
             pass
 
         X = role_df[model_features]
@@ -67,7 +62,6 @@ class AnalyticsService:
 
             # Génération Image
             plt.figure(figsize=(10, 6))
-            # On renomme les colonnes pour l'affichage uniquement
             X_display = X.rename(columns=self.readable_names)
             shap.summary_plot(shap_values, X_display,
                               show=False, plot_size=(10, 6))
@@ -116,7 +110,6 @@ class AnalyticsService:
         if len(role_df) < 2:
             raise ValueError(f"Pas assez de données pour {role}.")
 
-        # Nettoyage
         numeric_df = role_df.select_dtypes(include=['number'])
         cols_drop = ['match_id', 'player_id', 'stat_id', 'mu', 'sigma']
         numeric_df = numeric_df.drop(
@@ -149,8 +142,6 @@ class AnalyticsService:
     def compute_shadow_scores(self, current_match_id, players_data):
         """
         Calcule un score XGBoost lissé par une sigmoïde centrée (courbe en S).
-        Utilise le modèle sauvegardé (MLService) pour une prédiction rapide.
-        Range cible : 20 - 80.
         """
         print(
             f"🤖 [Shadow Mode] Calcul des scores XGBoost pour match #{current_match_id}...")
@@ -158,19 +149,16 @@ class AnalyticsService:
         roles_in_game = set(p['role'] for p in players_data)
 
         for role in roles_in_game:
-            # Récupération du modèle (pas d'entraînement ici, juste chargement)
             model = self.ml_service.get_or_train_model(
                 role, force_retrain=True)
             if not model:
                 continue
 
-            # Le modèle a une liste précise de features qu'il attend
             expected_features = model.get_booster().feature_names
 
             for p in players_data:
                 if p['role'] == role:
                     try:
-                        # Construction du DataFrame d'input (1 ligne)
                         p_feats = pd.DataFrame([p['metrics']])
                         p_input = pd.DataFrame(
                             0, index=[0], columns=expected_features)
@@ -179,15 +167,10 @@ class AnalyticsService:
                             if f in p_feats.columns:
                                 p_input[f] = p_feats[f]
 
-                        # 1. Probabilité brute (0.0 -> 1.0)
-                        # predict_proba renvoie [[prob_loss, prob_win]]
                         raw_proba = model.predict_proba(p_input)[0][1]
 
-                        # 2. Sigmoïde Centrée
                         k = 5
                         sigmoid_val = 1 / (1 + np.exp(-k * (raw_proba - 0.5)))
-
-                        # 3. Scaling final vers 20-80
                         final_score = 20 + (sigmoid_val * 60)
                         p['shadow_score'] = final_score
 
@@ -239,27 +222,13 @@ class AnalyticsService:
             shap_values = explainer(player_avg)
 
             # 6. Création des Labels dynamiques
-            new_labels = []
-            for feat in valid_features:
-                base_name = self.readable_names.get(feat, feat)
-                s_avg = server_avg[feat]
-                o_avg = optimal_map.get(feat, 0)
-
-                if feat in ["damage_dealt_per_min", "gold_per_min", "effective_tanking_per_min"]:
-                    fmt = "{:.0f}"
-                else:
-                    fmt = "{:.1f}"
-
-                label = f"{base_name}\nAvg:{fmt.format(s_avg)} | Opt:{fmt.format(o_avg)}"
-                new_labels.append(label)
-
-            shap_values.feature_names = new_labels
+            shap_values.feature_names = self._generate_comparison_labels(
+                valid_features, server_avg, optimal_map)
 
             # 7. Génération du graph
             plt.figure(figsize=(14, 8))
-            shap.plots.waterfall(shap_values[0],
-                                 max_display=len(self.readable_names),
-                                 show=False)
+            shap.plots.waterfall(shap_values[0], max_display=len(
+                self.readable_names), show=False)
             plt.title(
                 f"Analyse IA : {riot_id} ({role}) vs Optimal théorique", fontsize=14)
 
@@ -277,11 +246,11 @@ class AnalyticsService:
 
             tips = []
             for idx in top_indices:
-                val = vals[idx]
                 feat_key = valid_features[idx]
                 name = original_names[idx]
                 p_val = player_avg.iloc[0, idx]
                 o_val = optimal_map.get(feat_key, 0)
+                val = vals[idx]
 
                 if val > 0:
                     tips.append(
@@ -302,7 +271,7 @@ class AnalyticsService:
 
     def _compute_ml_optimal(self, model, X, features):
         """
-        Trouve la valeur optimale pour chaque feature en maximisant 
+        Trouve la valeur optimale pour chaque feature en maximisant
         la probabilité de victoire prédite par le modèle.
         """
         optimal_stats = {}
@@ -321,9 +290,7 @@ class AnalyticsService:
                 batch = pd.concat([base_vector] * 50, ignore_index=True)
                 batch[feat] = test_values
 
-                # Appel au modèle pour prédiction
                 probas = model.predict_proba(batch)[:, 1]
-
                 best_idx = np.argmax(probas)
                 optimal_stats[feat] = test_values[best_idx]
 
@@ -333,9 +300,27 @@ class AnalyticsService:
 
         return optimal_stats
 
+    def _generate_comparison_labels(self, features, server_avg, optimal_map):
+        """Génère les labels formattés Avg vs Opt pour les graphiques."""
+        new_labels = []
+        for feat in features:
+            base_name = self.readable_names.get(feat, feat)
+            s_avg = server_avg[feat]
+            o_avg = optimal_map.get(feat, 0)
+
+            if feat in ["damage_dealt_per_min", "gold_per_min", "effective_tanking_per_min"]:
+                fmt = "{:.0f}"
+            else:
+                fmt = "{:.1f}"
+
+            label = f"{base_name}\nAvg:{fmt.format(s_avg)} | Opt:{fmt.format(o_avg)}"
+            new_labels.append(label)
+        return new_labels
+
     def analyze_specific_match(self, match_id, riot_id):
         """
         Analyse une partie spécifique pour un joueur donné via le modèle central.
+        Affiche désormais les comparaisons Optimales / Moyennes comme l'analyse perso.
         """
         df = self.match_repo.get_historical_data_dataframe()
 
@@ -361,26 +346,30 @@ class AnalyticsService:
         if not model:
             return {"error": "Pas de modèle disponible pour ce rôle."}
 
-        # Contexte global pour SHAP
+        # Contexte global pour SHAP et comparaisons
         role_df = df[df['role'] == role]
         valid_features = model.get_booster().feature_names
         X = role_df[valid_features]
-
-        # Instance cible
         X_target = match_row[valid_features]
 
+        # Calcul des références (Moyenne serveur et Optimal)
+        server_avg = X.mean()
+
         try:
+            optimal_map = self._compute_ml_optimal(model, X, valid_features)
+
             # SHAP
             explainer = shap.Explainer(model, X)
             shap_values = explainer(X_target)
 
-            # Graphique Waterfall
-            plt.figure(figsize=(10, 6))
-            new_names = [self.readable_names.get(n, n) for n in valid_features]
-            shap_values.feature_names = new_names
+            # Application des labels uniformisés (Avg | Opt)
+            shap_values.feature_names = self._generate_comparison_labels(
+                valid_features, server_avg, optimal_map)
 
-            shap.plots.waterfall(
-                shap_values[0], max_display=len(new_names), show=False)
+            # Graphique Waterfall uniformisé
+            plt.figure(figsize=(14, 8))
+            shap.plots.waterfall(shap_values[0], max_display=len(
+                valid_features), show=False)
 
             title = f"Impact Stats: {riot_id} ({'Victoire' if win else 'Défaite'})"
             plt.title(title, fontsize=14)
