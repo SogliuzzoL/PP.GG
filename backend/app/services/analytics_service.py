@@ -99,7 +99,7 @@ class AnalyticsService:
         role = role.upper()
         df = self.match_repo.get_historical_data_dataframe()
 
-        self.save_graph_png(role, filename=f"correlation_matrix_{role}")
+        self.save_graph_png(role)
 
         if df.empty:
             raise ValueError("Pas de données.")
