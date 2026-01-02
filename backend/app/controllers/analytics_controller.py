@@ -25,6 +25,17 @@ def get_matrix(role):
         return jsonify({"error": f"Internal Error: {e}"}), 500
 
 
+@analytics_bp.route('/tree/<role>', methods=['GET'])
+def get_tree(role):
+    try:
+        pdf_buf = service.save_all_trees_pdf(role)
+        return send_file(pdf_buf, mimetype='application/pdf', max_age=0)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Internal Error: {e}"}), 500
+
+
 @analytics_bp.route('/personal_meta', methods=['GET'])
 def personal_meta():
     riot_id = request.args.get('riot_id')

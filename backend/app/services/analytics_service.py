@@ -100,8 +100,6 @@ class AnalyticsService:
         role = role.upper()
         df = self.match_repo.get_historical_data_dataframe()
 
-        self.save_all_trees_pdf(role)
-
         if df.empty:
             raise ValueError("Pas de données.")
 
@@ -409,6 +407,7 @@ class AnalyticsService:
             return {"error": "Impossible de générer l'analyse détaillée."}
 
     def save_all_trees_pdf(self, role, filename="all_trees_model"):
+        """Génère un PDF contenant tous les arbres du modèle XGBoost pour un rôle donné."""
         role = role.upper()
         model = self.ml_service.get_or_train_model(role)
 
@@ -431,4 +430,7 @@ class AnalyticsService:
                 plt.close()  # Libérer la mémoire
 
         print(f"✅ PDF sauvegardé : {output_pdf}")
-        return output_pdf
+        buffer = io.BytesIO()
+        with open(output_pdf, 'rb') as f:
+            buffer.write(f.read())
+        return buffer
