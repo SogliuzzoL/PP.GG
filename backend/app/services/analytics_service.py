@@ -428,9 +428,7 @@ class AnalyticsService:
                 # CORRECTION DU WARNING : utilisation de 'tree_idx' au lieu de 'num_trees'
                 xgb.plot_tree(model, tree_idx=i, rankdir='LR')
                 plt.title(f"Arbre #{i} - {role}")
-
-                # Sauvegarde avec une DPI standard (150 suffit pour de la lecture écran)
-                pdf.savefig(bbox_inches='tight', dpi=150)
+                pdf.savefig(bbox_inches='tight', dpi=250)
 
                 # Fermeture explicite pour éviter la fuite de mémoire
                 plt.close()
