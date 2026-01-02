@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import shap
+import xgboost as xgb
 
 from backend.app.repositories.match_repository import MatchRepository
 from backend.app.services.ml_service import MachineLearningService
@@ -96,6 +98,8 @@ class AnalyticsService:
         """Génère une image de matrice de corrélation."""
         role = role.upper()
         df = self.match_repo.get_historical_data_dataframe()
+
+        self.save_graph_png(role, filename=f"correlation_matrix_{role}")
 
         if df.empty:
             raise ValueError("Pas de données.")
@@ -402,3 +406,24 @@ class AnalyticsService:
         except Exception as e:
             print(f"Erreur analyse match: {e}")
             return {"error": "Impossible de générer l'analyse détaillée."}
+
+    def save_graph_png(self, role, filename="model_tree"):
+        role = role.upper()
+        model = self.ml_service.get_or_train_model(role)
+
+        # 1. Générer l'objet Graphviz
+        # IMPORTANT : Ajoute num_trees=0, sinon il va essayer de dessiner
+        # tes 100 arbres les uns sous les autres (ce sera illisible et énorme).
+        graph = xgb.to_graphviz(model, num_trees=0)
+
+        # 2. Configurer le format
+        graph.format = 'png'
+
+        # 3. Sauvegarder
+        # 'filename' : le nom du fichier (sans extension, graphviz l'ajoute)
+        # 'view=False' : pour ne pas ouvrir l'image automatiquement
+        # 'cleanup=True' : pour supprimer le fichier source temporaire (.dot) généré
+        output_path = graph.render(filename=filename, view=False, cleanup=True)
+
+        print(f"Graphique sauvegardé ici : {output_path}")
+        return output_path
