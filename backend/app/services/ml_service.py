@@ -3,12 +3,14 @@ import xgboost as xgb
 
 from backend.app.repositories.match_repository import MatchRepository
 from backend.app.repositories.model_repository import ModelRepository
+from backend.app.services.analytics_service import AnalyticsService
 
 
 class MachineLearningService:
     def __init__(self):
         self.match_repo = MatchRepository()
         self.model_repo = ModelRepository()
+        self.analytics_service = AnalyticsService()
 
         # Configuration UNIFORMISÉE pour tous les modèles
         self.xgb_params = {
@@ -19,15 +21,7 @@ class MachineLearningService:
             "eval_metric": "logloss"
         }
 
-        # Mapping lisible pour SHAP (repris de ton analytics_service)
-        self.feature_names_map = {
-            "kda": "KDA", "kill_participation": "KP (%)", "cs_per_min": "CS/min",
-            "gold_per_min": "Gold/min", "damage_dealt_per_min": "DPM",
-            "vision_score_per_min": "Vis/min", "vision_control_per_min": "Vis. Ctrl/min",
-            "cc_score_per_min": "CC/min", "healing_on_teammates_per_min": "Heal/min",
-            "effective_tanking_per_min": "Tank/min", "team_damage_percentage": "Dmg%",
-            "kills_per_min": "Kills/min", "deaths_per_min": "Deaths/min", "assists_per_min": "Assists/min"
-        }
+        self.feature_names_map = self.analytics_service.readable_names()
 
     def get_or_train_model(self, role: str, force_retrain: bool = False):
         """Récupère le modèle sauvegardé ou l'entraîne si inexistant/forcé."""
