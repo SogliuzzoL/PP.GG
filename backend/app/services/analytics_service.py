@@ -9,6 +9,7 @@ import pandas as pd
 import seaborn as sns
 import shap
 import xgboost as xgb
+from matplotlib.backends.backend_pdf import PdfPages
 
 from backend.app.repositories.match_repository import MatchRepository
 from backend.app.services.ml_service import MachineLearningService
@@ -99,7 +100,7 @@ class AnalyticsService:
         role = role.upper()
         df = self.match_repo.get_historical_data_dataframe()
 
-        self.save_graph_png(role)
+        self.save_all_trees_pdf(role)
 
         if df.empty:
             raise ValueError("Pas de données.")
@@ -407,23 +408,27 @@ class AnalyticsService:
             print(f"Erreur analyse match: {e}")
             return {"error": "Impossible de générer l'analyse détaillée."}
 
-    def save_graph_png(self, role, filename="model_tree"):
+    def save_all_trees_pdf(self, role, filename="all_trees_model"):
         role = role.upper()
         model = self.ml_service.get_or_train_model(role)
 
-        # 1. Générer l'objet Graphviz
-        # IMPORTANT : Ajoute num_trees=0, sinon il va essayer de dessiner
-        # tes 100 arbres les uns sous les autres (ce sera illisible et énorme).
-        graph = xgb.to_graphviz(model, tree_idx=1)
+        output_pdf = f"{filename}_{role}.pdf"
+        n_trees = model.get_booster().num_boosted_rounds()
 
-        # 2. Configurer le format
-        graph.format = 'png'
+        print(f"📄 Génération du PDF avec {n_trees} pages...")
 
-        # 3. Sauvegarder
-        # 'filename' : le nom du fichier (sans extension, graphviz l'ajoute)
-        # 'view=False' : pour ne pas ouvrir l'image automatiquement
-        # 'cleanup=True' : pour supprimer le fichier source temporaire (.dot) généré
-        output_path = graph.render(filename=filename, view=False, cleanup=True)
+        with PdfPages(output_pdf) as pdf:
+            for i in range(n_trees):
+                # Créer une figure large
+                plt.figure(figsize=(20, 10))
 
-        print(f"Graphique sauvegardé ici : {output_path}")
-        return output_path
+                # Dessiner l'arbre
+                xgb.plot_tree(model, num_trees=i, rankdir='LR')
+                plt.title(f"Arbre #{i} - {role}")
+
+                # Sauvegarder la page courante dans le PDF
+                pdf.savefig(bbox_inches='tight')
+                plt.close()  # Libérer la mémoire
+
+        print(f"✅ PDF sauvegardé : {output_pdf}")
+        return output_pdf
