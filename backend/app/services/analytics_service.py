@@ -427,7 +427,7 @@ class AnalyticsService:
                 plt.title(f"Arbre #{i} - {role}")
 
                 # Sauvegarder la page courante dans le PDF
-                pdf.savefig(bbox_inches='tight')
+                pdf.savefig(bbox_inches='tight', dpi=300)
                 plt.close()  # Libérer la mémoire
 
         print(f"✅ PDF sauvegardé : {output_pdf}")
