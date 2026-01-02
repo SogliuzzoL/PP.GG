@@ -406,31 +406,37 @@ class AnalyticsService:
             print(f"Erreur analyse match: {e}")
             return {"error": "Impossible de générer l'analyse détaillée."}
 
-    def save_all_trees_pdf(self, role, filename="all_trees_model"):
-        """Génère un PDF contenant tous les arbres du modèle XGBoost pour un rôle donné."""
+    def save_all_trees_pdf(self, role):
+        """Génère un PDF en mémoire (RAM) pour éviter les I/O disques et les timeouts."""
         role = role.upper()
         model = self.ml_service.get_or_train_model(role)
 
-        output_pdf = f"{filename}_{role}.pdf"
         n_trees = model.get_booster().num_boosted_rounds()
+        print(f"📄 Génération du PDF en mémoire avec {n_trees} pages...")
 
-        print(f"📄 Génération du PDF avec {n_trees} pages...")
+        # Utilisation d'un buffer en mémoire (RAM) au lieu d'un fichier physique
+        pdf_buffer = io.BytesIO()
 
-        with PdfPages(output_pdf) as pdf:
+        # Désactiver le mode interactif de matplotlib pour gagner un peu de perf
+        plt.ioff()
+
+        with PdfPages(pdf_buffer) as pdf:
             for i in range(n_trees):
-                # Créer une figure large
-                plt.figure(figsize=(20, 10))
+                # Réduction légère de la taille (15, 10) pour accélérer le rendu sans trop perdre en lisibilité
+                plt.figure(figsize=(15, 10))
 
-                # Dessiner l'arbre
-                xgb.plot_tree(model, num_trees=i, rankdir='LR')
+                # CORRECTION DU WARNING : utilisation de 'tree_idx' au lieu de 'num_trees'
+                xgb.plot_tree(model, tree_idx=i, rankdir='LR')
                 plt.title(f"Arbre #{i} - {role}")
 
-                # Sauvegarder la page courante dans le PDF
-                pdf.savefig(bbox_inches='tight', dpi=300)
-                plt.close()  # Libérer la mémoire
+                # Sauvegarde avec une DPI standard (150 suffit pour de la lecture écran)
+                pdf.savefig(bbox_inches='tight', dpi=150)
 
-        print(f"✅ PDF sauvegardé : {output_pdf}")
-        buffer = io.BytesIO()
-        with open(output_pdf, 'rb') as f:
-            buffer.write(f.read())
-        return buffer
+                # Fermeture explicite pour éviter la fuite de mémoire
+                plt.close()
+
+        # Rembobiner le buffer au début pour qu'il puisse être lu par Flask
+        pdf_buffer.seek(0)
+
+        print(f"✅ PDF généré avec succès ({n_trees} arbres).")
+        return pdf_buffer
