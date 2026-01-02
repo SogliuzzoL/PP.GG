@@ -3,14 +3,13 @@ import xgboost as xgb
 
 from backend.app.repositories.match_repository import MatchRepository
 from backend.app.repositories.model_repository import ModelRepository
-from backend.app.services.analytics_service import AnalyticsService
+from backend.config import Config
 
 
 class MachineLearningService:
     def __init__(self):
         self.match_repo = MatchRepository()
         self.model_repo = ModelRepository()
-        self.analytics_service = AnalyticsService()
 
         # Configuration UNIFORMISÉE pour tous les modèles
         self.xgb_params = {
@@ -21,7 +20,8 @@ class MachineLearningService:
             "eval_metric": "logloss"
         }
 
-        self.feature_names_map = self.analytics_service.readable_names()
+        # Mapping lisible pour SHAP (repris de ton analytics_service)
+        self.feature_names_map = Config.FEATURES
 
     def get_or_train_model(self, role: str, force_retrain: bool = False):
         """Récupère le modèle sauvegardé ou l'entraîne si inexistant/forcé."""

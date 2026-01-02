@@ -10,6 +10,7 @@ import shap
 
 from backend.app.repositories.match_repository import MatchRepository
 from backend.app.services.ml_service import MachineLearningService
+from backend.config import Config
 
 matplotlib.use('Agg')
 
@@ -18,14 +19,7 @@ class AnalyticsService:
     def __init__(self):
         self.match_repo = MatchRepository()
         self.ml_service = MachineLearningService()
-        self.readable_names = {
-            "kda": "KDA", "kill_participation": "KP (%)", "cs_per_min": "CS/min",
-            "gold_per_min": "Gold/min", "damage_dealt_per_min": "DPM",
-            "vision_score_per_min": "Vis/min", "vision_control_per_min": "Vis. Ctrl/min",
-            "cc_score_per_min": "CC/min", "healing_on_teammates_per_min": "Heal/min",
-            "effective_tanking_per_min": "Tank/min", "team_damage_percentage": "Dmg%",
-            "kills_per_min": "Kills/min", "deaths_per_min": "Deaths/min", "assists_per_min": "Assists/min"
-        }
+        self.readable_names = Config.FEATURES
 
     def get_meta_analysis(self, role: str):
         """Génère l'analyse SHAP pour un rôle en utilisant le modèle centralisé."""
