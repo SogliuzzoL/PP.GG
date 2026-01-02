@@ -414,7 +414,7 @@ class AnalyticsService:
         # 1. Générer l'objet Graphviz
         # IMPORTANT : Ajoute num_trees=0, sinon il va essayer de dessiner
         # tes 100 arbres les uns sous les autres (ce sera illisible et énorme).
-        graph = xgb.to_graphviz(model)
+        graph = xgb.to_graphviz(model, tree_idx=1)
 
         # 2. Configurer le format
         graph.format = 'png'
