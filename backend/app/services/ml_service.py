@@ -40,6 +40,8 @@ class MachineLearningService:
         if df.empty:
             return None
 
+        print(df)
+
         df = df.iloc[:-1]
 
         role_df = df[df['role'] == role]
