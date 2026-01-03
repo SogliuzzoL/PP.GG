@@ -40,6 +40,8 @@ class MachineLearningService:
         if df.empty:
             return None
 
+        df = df.iloc[:-1]
+
         role_df = df[df['role'] == role]
         if len(role_df) < 10:  # Seuil minimal de sécurité
             print(f"⚠️ Pas assez de données pour entraîner {role}")
