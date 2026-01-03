@@ -37,12 +37,13 @@ class MachineLearningService:
 
     def _train_model(self, role: str):
         df = self.match_repo.get_historical_data_dataframe()
+
         if df.empty:
             return None
 
-        print(df)
-
-        df = df.iloc[:-1]
+        if 'match_id' in df.columns and not df.empty:
+            last_match_id = df['match_id'].max()
+            df = df[df['match_id'] != last_match_id]
 
         role_df = df[df['role'] == role]
         if len(role_df) < 10:  # Seuil minimal de sécurité
