@@ -100,3 +100,20 @@ class PlayerRepository:
         rows = conn.execute(query, (pid_row['player_id'],)).fetchall()
         conn.close()
         return [dict(row) for row in rows], pid_row['player_id']
+
+    def get_players_batch(self, riot_ids):
+        """Récupère les stats pour une liste de Riot IDs."""
+        if not riot_ids:
+            return []
+
+        conn = get_db_connection()
+        placeholders = ','.join('?' for _ in riot_ids)
+        query = f"""
+            SELECT p.riot_id, s.mu, s.sigma
+            FROM players p
+            LEFT JOIN player_skill s ON p.player_id = s.player_id
+            WHERE p.riot_id IN ({placeholders})
+            """
+        rows = conn.execute(query, riot_ids).fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
