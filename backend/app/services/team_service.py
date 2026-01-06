@@ -96,7 +96,7 @@ class TeamService:
             # Trie les joueurs par rating décroissant pour l'affichage
             sorted_team = sorted(
                 team_list, key=lambda x: x['rating'], reverse=True)
-            return "\n".join([f"• **{p['riot_id']}** `({p['rating']:.0f})`" for p in sorted_team])
+            return "\n".join([f"• **{p['riot_id']}** `({p['rating']:.2f})`" for p in sorted_team])
 
         col_blue = format_team(t1)
         col_red = format_team(t2)
@@ -118,12 +118,12 @@ class TeamService:
             "color": color,
             "fields": [
                 {
-                    "name": f"🔵 Équipe 1 (Moy: {avg1:.0f})",
+                    "name": f"🔵 Équipe 1 (Moy: {avg1:.2f})",
                     "value": col_blue if col_blue else "Vide",
                     "inline": True
                 },
                 {
-                    "name": f"🔴 Équipe 2 (Moy: {avg2:.0f})",
+                    "name": f"🔴 Équipe 2 (Moy: {avg2:.2f})",
                     "value": col_red if col_red else "Vide",
                     "inline": True
                 }
