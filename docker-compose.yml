@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Service 1 : L'API Flask (Backend)
+  backend:
+    build: .
+    container_name: pp_gg_backend
+    command: python -m backend.run
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persistance de la base de données (fichier db.sqlite3)
+      - ./pp_gg_data:/app/data
+    environment:
+      - BACKEND_PORT=5000
+      - DB_PATH=data/db.sqlite3
+      # Remplace par ton vrai webhook ou utilise un fichier .env
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL} 
+
+  # Service 2 : Le Bot Discord
+  bot:
+    build: .
+    container_name: pp_gg_bot
+    # On lance le script du bot
+    command: python bot/main.py
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # Attention : Dans Docker, le backend est accessible via son nom de service
+      - BACKEND_URL=http://backend:5000
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+    volumes:
+      # Le bot a besoin d'accéder aux graphiques générés s'ils sont sauvés sur disque,
+      # mais ton code actuel renvoie du Base64, donc ce n'est pas strictement nécessaire.
+      # On le met par sécurité si tu changes la logique plus tard.
+      - ./pp_gg_data:/app/data
+
+volumes:
+  pp_gg_data:
