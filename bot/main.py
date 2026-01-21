@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
-TOKEN = os.getenv('discord_token')
+TOKEN = os.getenv('DISCORD_TOKEN')
 # Default to localhost if not set
-BACKEND_URL = os.getenv('backend_url')
+BACKEND_URL = os.getenv('BACKEND_URL')
 
 # Define intents
 intents = discord.Intents.default()
